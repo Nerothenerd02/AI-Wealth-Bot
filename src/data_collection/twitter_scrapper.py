@@ -37,7 +37,7 @@ def fetch_twitter_sentiment(query="cryptocurrency", limit=100, save_csv=True):
         # Save to CSV
         if save_csv:
             output_dir = "data/raw"
-            os.makedirs(output_dir, exist_ok=True)  # Ensure directory exists
+            os.makedirs(output_dir, exist_ok=True) 
             file_path = os.path.join(output_dir, "twitter_sentiment.csv")
             df.to_csv(file_path, index=False)
             print(f"📂 Data saved to {file_path}")

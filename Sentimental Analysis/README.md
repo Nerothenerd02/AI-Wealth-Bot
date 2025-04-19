@@ -1,1 +1,1 @@
-Model Download Link - ***
+Model Download Link - (https://drive.google.com/file/d/1FPgzy4ge0ZWTrusfyDaHoHLRPI1b-YMD/view?usp=drive_link)

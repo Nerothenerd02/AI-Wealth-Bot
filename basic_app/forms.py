@@ -11,7 +11,3 @@ class CreateUserForm(UserCreationForm):
         model = User
         fields = ['username','password1','password2']
 
-# class updateQuantityForm(forms.ModelForm):
-#     class Meta:
-#         model = Stock
-#         fields = ['quantity']

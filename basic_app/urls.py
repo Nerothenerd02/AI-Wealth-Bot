@@ -1,8 +1,9 @@
-from django.urls import path
+from django.urls import path, include
 from basic_app import views
 
 app_name = 'basic_app'
 urlpatterns = [
+    path('emotion', views.emotion_view, name='emotion'),
     path('', views.dashboard,name="dashboard"),
     path('home/', views.index, name='index'),
     path('profile/',views.profile, name ='profile'),
@@ -17,6 +18,7 @@ urlpatterns = [
     path('home/<str:symbol>/add', views.addToPortfolio, name = "addToPortfolio"),
     path('portfolio/<str:symbol>/remove',views.removeFromPortfolio,name="removeFromPortfolio"),
     path('portfolio/<str:symbol>/quantityAdd', views.quantityAdd, name = "quantityAdd"),
-    path('portfolio/<str:symbol>/quantitySub', views.quantitySub, name = "quantitySub")
+    path('portfolio/<str:symbol>/quantitySub', views.quantitySub, name = "quantitySub"),
+    path('', include('basic_app.urls'))
 
 ]

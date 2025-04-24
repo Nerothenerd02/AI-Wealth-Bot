@@ -7,6 +7,9 @@ from basic_app.stock_data import candlestick_data,get_data,get_name,get_price
 from basic_app.FA import piotroski
 # Create your views here.
 from django.http import HttpResponse
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate,login,logout
 from django.contrib import messages
@@ -21,12 +24,25 @@ from basic_app.ProphetTrend import forecast
 def dashboard(request):
     return render(request,"basic_app/dashboard.html")
 
+@csrf_exempt
+@require_http_methods(["POST", "OPTIONS"])
+def emotion_view(request):
+    if request.method == "OPTIONS":
+        # Respond to preflight request
+        response = JsonResponse({})
+        response["Access-Control-Allow-Origin"] = "*"
+        response["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+        response["Access-Control-Allow-Headers"] = "Content-Type"
+        return response
 
+    if request.method == "POST":
+        # Handle your POST logic here
+        return JsonResponse({"message": "Emotion endpoint works!"})
 
 @login_required(login_url='basic_app:login')
 @allowed_users(allowed_roles=['Client'])
 def index(request):
-    if request.is_ajax():
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         res = None
         data = request.POST.get('searchData')
         item = getStockInfo(data)
@@ -117,7 +133,7 @@ def stock(request,symbol):
 
     print(recommendation)
     context ={'data':dumps(data),'item':dumps(item),'info':info,'piotroski_score':piotroski_score,'sentiment_data':dumps(sentiment_news_chart),'page_title':symbol+" Info",'recommendation':recommendation}
-    if request.is_ajax():
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         run = False
         res = None
         data = request.POST.get('myData')
@@ -179,7 +195,7 @@ def loginPage(request):
 
         if user is not None:
             login(request,user)
-            if(user.groups.all()[0].name == 'Admin'):
+            if user.groups.filter(name='Admin').exists():
                 return redirect("basic_app:stats")
             else:
                 return redirect("basic_app:index")
@@ -287,7 +303,7 @@ def quantitySub(request,symbol):
 
 
 # def search_results(request):
-#     if request.is_ajax():
+#     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
 #         data = request.POST.get('searchData')
 #         return JsonResponse({'data':data})
 #     return JsonResponse({})

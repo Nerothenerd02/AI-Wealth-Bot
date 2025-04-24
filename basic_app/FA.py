@@ -1,38 +1,60 @@
 import pandas as pd
-import datetime
 import yfinance as yf
 
 def piotroski(ticker):
-    bs = yf.Ticker(ticker).balance_sheet
-    inc = yf.Ticker(ticker).financials
-    cf = yf.Ticker(ticker).cashflow
-    longTermDebt = bs.loc['Long Term Debt'][0]
-    longTermDebtPre = bs.loc['Long Term Debt'][1]
-    totalAssets = bs.loc['Total Assets'][0]
-    totalAssetsPre = bs.loc['Total Assets'][1]
-    totalAssetsPre2 = bs.loc['Total Assets'][2]
-    currentAssets = bs.loc['Total Current Assets'][0]
-    currentAssetsPre = bs.loc['Total Current Assets'][1]
-    currentLiabilities = bs.loc['Total Current Liabilities'][0]
-    currentLiabilitiesPre = bs.loc['Total Current Liabilities'][1]
-    revenue = inc.loc['Total Revenue'][0]
-    revenuePre = inc.loc['Total Revenue'][1]
-    grossProfit = inc.loc['Gross Profit'][0]
-    grossProfitPre = inc.loc['Gross Profit'][1]
-    netIncome = inc.loc['Net Income'][0]
-    netIncomePre = inc.loc['Net Income'][1]
-    operatingCashFlow = cf.loc['Total Cash From Operating Activities'][0]
-    operatingCashFlowPre = cf.loc['Total Cash From Operating Activities'][1]
-    commonStock = bs.loc['Common Stock'][0]
-    commonStockPre = bs.loc['Common Stock'][1]
-    ROAFS = int(netIncome/((totalAssets + totalAssetsPre)/2)>0)
-    CFOFS = int(operatingCashFlow>0)
-    ROADFS = int((netIncome/((totalAssets + totalAssetsPre)/2))>(netIncomePre/((totalAssetsPre + totalAssetsPre2))))
-    CFOROAFS = int((operatingCashFlow/totalAssets)>(netIncome/((totalAssets + totalAssetsPre)/2)))
+    ticker_data = yf.Ticker(ticker)
+    bs = ticker_data.balance_sheet
+    inc = ticker_data.financials
+    cf = ticker_data.cashflow
+
+    def safe_get(df, key, index=0, default=0):
+        try:
+            return df.loc[key][index]
+        except (KeyError, IndexError):
+            return default
+
+    longTermDebt     = safe_get(bs, 'Long Term Debt')
+    longTermDebtPre  = safe_get(bs, 'Long Term Debt', 1)
+    totalAssets      = safe_get(bs, 'Total Assets')
+    totalAssetsPre   = safe_get(bs, 'Total Assets', 1)
+    totalAssetsPre2  = safe_get(bs, 'Total Assets', 2)
+
+    currentAssets        = safe_get(bs, 'Total Current Assets')
+    currentAssetsPre     = safe_get(bs, 'Total Current Assets', 1)
+    currentLiabilities   = safe_get(bs, 'Total Current Liabilities')
+    currentLiabilitiesPre = safe_get(bs, 'Total Current Liabilities', 1)
+
+    revenue         = safe_get(inc, 'Total Revenue')
+    revenuePre      = safe_get(inc, 'Total Revenue', 1)
+    grossProfit     = safe_get(inc, 'Gross Profit')
+    grossProfitPre  = safe_get(inc, 'Gross Profit', 1)
+    netIncome       = safe_get(inc, 'Net Income')
+    netIncomePre    = safe_get(inc, 'Net Income', 1)
+
+    operatingCashFlow    = safe_get(cf, 'Total Cash From Operating Activities')
+    operatingCashFlowPre = safe_get(cf, 'Total Cash From Operating Activities', 1)
+
+    commonStock     = safe_get(bs, 'Common Stock')
+    commonStockPre  = safe_get(bs, 'Common Stock', 1)
+
+    # Prevent division by zero
+    avg_total_assets = (totalAssets + totalAssetsPre) / 2 or 1
+    avg_total_assets_pre = (totalAssetsPre + totalAssetsPre2) / 2 or 1
+
+    # Piotroski Score Components
+    ROAFS = int(netIncome / avg_total_assets > 0)
+    CFOFS = int(operatingCashFlow > 0)
+    ROADFS = int((netIncome / avg_total_assets) > (netIncomePre / avg_total_assets_pre))
+    CFOROAFS = int((operatingCashFlow / totalAssets) > (netIncome / avg_total_assets))
     LTDFS = int(longTermDebt <= longTermDebtPre)
-    CRFS = int(currentAssets/currentLiabilities)>(currentAssetsPre/currentLiabilitiesPre)
+
+    # Check current ratios safely
+    CRFS = int((currentAssets / (currentLiabilities or 1)) > (currentAssetsPre / (currentLiabilitiesPre or 1)))
     NSFS = int(commonStock <= commonStockPre)
-    GMFS = int(grossProfit/revenue>grossProfitPre/revenuePre)
-    ATOFS = int((revenue/((totalAssets + totalAssetsPre)/2))>(revenuePre/((totalAssetsPre + totalAssetsPre2))))
-    return ROAFS + CFOFS +  ROADFS + CFOROAFS + LTDFS + CRFS + NSFS + GMFS + ATOFS
-print(piotroski('msft'))
+    GMFS = int((grossProfit / (revenue or 1)) > (grossProfitPre / (revenuePre or 1)))
+    ATOFS = int((revenue / avg_total_assets) > (revenuePre / avg_total_assets_pre))
+
+    return ROAFS + CFOFS + ROADFS + CFOROAFS + LTDFS + CRFS + NSFS + GMFS + ATOFS
+
+# Remove print during production setup
+# print(piotroski('msft'))

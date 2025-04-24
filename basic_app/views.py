@@ -42,30 +42,14 @@ def emotion_view(request):
 @login_required(login_url='basic_app:login')
 @allowed_users(allowed_roles=['Client'])
 def index(request):
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        res = None
+    if request.method == "POST":
         data = request.POST.get('searchData')
-        item = getStockInfo(data)
-        if len(item)>0 and len(data):
-            res = item
+        stock_data = getStockInfo(data)
+        if stock_data:
+            return JsonResponse({'data': [stock_data]})
         else:
-            res = 'No stocks found..'
-
-        #print(data)
-
-        return JsonResponse({'data':res})
-
-    user = request.user
-    client = Client.objects.get(user=user)
-    portfolio = Portfolio.objects.get(client=client)
-    stocks = portfolio.stocks.all()
-    #print(stocks)
-    #print(stocks)
-    news = getNews("business")
-    #print(news)
-    context = {'stocks':stocks,'news':news,'page_title':"Home"}
-
-    return render(request,"basic_app/index.html",context)
+            return JsonResponse({'data': "No stocks found.."})
+    return render(request, 'basic_app/index.html')    
 
 @login_required(login_url='basic_app:login')
 @allowed_users(allowed_roles=['Client'])

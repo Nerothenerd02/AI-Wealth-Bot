@@ -207,73 +207,73 @@ tr td:first-child:before
 
 </body>
 <script>
-console.log('hello world')
-const search_key = document.getElementById("search-input")
-const result_box = document.getElementById("results-box")
-const sendSearchData = (searchData) =>
-{
-  $.ajax({
-    type: 'POST',
-    url: '',
-    data: {
-      'searchData': searchData,
-      'csrfmiddlewaretoken': '{{csrf_token}}'
-    },
-    success: (res)=>{
-      console.log(res.data)
-      const data = res.data
-
-      if(Array.isArray(data))
-      {
-        result_box.innerHTML=""
-        for(var i=0;i<data.length;i++)
-        {
-          var symbol = data[i].symbol
-          console.log(symbol)
-          result_box.innerHTML += `<center><a class="text-dark" href="${symbol}">${data[i].name}<p class="text-muted justify-content-center">( ${data[i].exchDisp})</p></a></center>`
-
+  console.log('hello world')
+  const search_key = document.getElementById("search-input");
+  const result_box = document.getElementById("results-box");
+  
+  let debounceTimer;
+  
+  const sendSearchData = (searchData) => {
+    $.ajax({
+      type: 'POST',
+      url: '',
+      data: {
+        'searchData': searchData,
+        'csrfmiddlewaretoken': '{{csrf_token}}'
+      },
+      success: (res) => {
+        console.log(res.data)
+        const data = res.data;
+  
+        if (Array.isArray(data)) {
+          result_box.innerHTML = "";
+          
+          // Check for rate limit or empty results
+          if (data.length === 0 || data[0]?.name === "Rate Limit Reached") {
+            result_box.innerHTML = `<center><p class="text-danger">Too many requests. Try again in a few seconds.</p></center>`;
+            return;
+          }
+  
+          for (var i = 0; i < data.length; i++) {
+            var symbol = data[i].symbol;
+            result_box.innerHTML += `
+              <center>
+                <a class="text-dark" href="${symbol}">
+                  ${data[i].name}
+                  <p class="text-muted justify-content-center">( ${data[i].exchDisp})</p>
+                </a>
+              </center>`;
+          }
+        } else {
+          if (search_key.value.length > 0) {
+            result_box.innerHTML = '<p>' + data + '</p>';
+          } else {
+            result_box.classList.add('d-none');
+          }
         }
-
+      },
+      error: (err) => {
+        console.error(err);
       }
-      else{
-        if(search_key.value.length > 0){
-          result_box.innerHTML = '<p>'+ data+ '</p>'
-
-        }
-        else
-        {
-          console.log("hi")
-          result_box.classList.add('d-none')
-
-
-        }
-
-      }
-    },
-    error: (err)=>{
-      console.log(err)
+    });
+  };
+  
+  search_key.addEventListener('keyup', (e) => {
+    clearTimeout(debounceTimer);
+  
+    const value = e.target.value;
+  
+    if (value.length === 0) {
+      result_box.classList.add('d-none');
+      return;
     }
-  })
-}
-
-search_key.addEventListener('keyup', e=>{
-  if(result_box.classList.contains('d-none'))
-  {
-    result_box.classList.remove('d-none')
-
-  }
-
-  if(e.target.value.length > 0)
-  sendSearchData(e.target.value)
-
-  else{
-    result_box.classList.add('d-none')
-  }
-
-})
-
+  
+    result_box.classList.remove('d-none');
+  
+    debounceTimer = setTimeout(() => {
+      sendSearchData(value);
+    }, 500); // Delay by 500ms
+  });
 </script>
-
-
-
+  
 </html>

@@ -1,43 +1,33 @@
-import urllib.request
-import json
+import yfinance as yf
 import time
-from django.core.cache import cache
-from urllib.error import HTTPError, URLError
 
-def getStockInfo(var):
-    var = var.strip().replace(' ', '')
-    cache_key = f"stockinfo_{var}"
-    
-    # Try to return from cache first
-    cached_data = cache.get(cache_key)
-    if cached_data:
-        return cached_data
+def getStockInfo(ticker_symbol, retries=3, delay=1):
+    for _ in range(retries):
+        try:
+            ticker_symbol = ticker_symbol.strip().upper()
+            stock = yf.Ticker(ticker_symbol)
+            info = stock.info
 
-    url = f"https://finance.yahoo.com/_finance_doubledown/api/resource/searchassist;searchTerm={var}?device=console&returnMeta=true"
+            # Fallback: if info is empty or missing expected fields
+            if not info or 'symbol' not in info:
+                raise ValueError("Invalid or empty response from yfinance")
 
-    try:
-        # Rate limit buffer
-        time.sleep(1)
+            return {
+                'symbol': info.get('symbol', ticker_symbol),
+                'name': info.get('shortName', 'Unavailable'),
+                'exchange': info.get('exchange', 'Unavailable'),
+                'price': info.get('currentPrice', 'N/A'),
+                'sector': info.get('sector', 'Unknown'),
+            }
+        except Exception as e:
+            print(f"[Retrying] Failed to fetch {ticker_symbol} - {e}")
+            time.sleep(delay)
 
-        with urllib.request.urlopen(url) as response:
-            data = json.loads(response.read())
-
-        # Cache response for 5 minutes
-        items = data.get('data', {}).get('items', [])
-        cache.set(cache_key, items, timeout=300)
-        return items
-
-    except HTTPError as e:
-        if e.code == 429:
-            print(f"[Rate Limit] Yahoo API: Too many requests for '{var}'")
-        else:
-            print(f"[HTTPError] Code: {e.code}, URL: {url}")
-        return []
-
-    except URLError as e:
-        print(f"[URLError] Failed to reach the server: {e.reason}")
-        return []
-
-    except Exception as e:
-        print(f"[Unexpected Error] {e}")
-        return []
+    # Final fallback after all retries
+    return {
+        'symbol': ticker_symbol,
+        'name': 'Data not available',
+        'exchange': 'N/A',
+        'price': 'N/A',
+        'sector': 'N/A'
+    }

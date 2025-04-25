@@ -30,14 +30,15 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'corsheaders.middleware.CorsMiddleware',           # ✅ Step 1
-    'csp.middleware.CSPMiddleware',                    # ✅ Step 2
+    'csp.middleware.CSPMiddleware', 
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',       # ✅ Step 3
+    'django.middleware.common.CommonMiddleware', 
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',          
+
 ]
 
 ROOT_URLCONF = 'AIWealthBot.urls'
@@ -93,22 +94,27 @@ CONTENT_SECURITY_POLICY = {
         'default-src': ("'self'",),
         'script-src': (
             "'self'",
-            "'unsafe-eval'",  # ⚠️ Only use this in development!
-            "'unsafe-inline'",  # ⚠️ Inline script support (only if needed)
+            "'unsafe-eval'",   # Needed for AnyChart temporarily
+            "'unsafe-inline'", # Bootstrap needs this, we can remove later by externalizing JS
             'https://cdn.anychart.com',
             'https://cdn.jsdelivr.net',
-            'https://ajax.googleapis.com'
+            'https://ajax.googleapis.com',
         ),
         'style-src': (
             "'self'",
-            "'unsafe-inline'",  # ⚠️ Needed for Bootstrap + inline styles
+            "'unsafe-inline'",  # Bootstrap needs this
             'https://cdn.anychart.com',
-            'https://cdn.jsdelivr.net'
+            'https://cdn.jsdelivr.net',
         ),
         'img-src': (
             "'self'",
             'data:',
-            'https://cdn.anychart.com'
+            'https://cdn.anychart.com',
+            'https://ichef.bbci.co.uk',
+            'https://gizmodo.com',
+            'https://platform.theverge.com',
         ),
+        'font-src': ("'self'", 'https://cdn.jsdelivr.net'),  # optional for Bootstrap icons/fonts
+        'connect-src': ("'self'",),
     }
 }

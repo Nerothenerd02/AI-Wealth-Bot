@@ -41,7 +41,8 @@ def predict_sentiment(sample_texts):
             max_length=512,
             add_special_tokens=True,
             return_token_type_ids=False,
-            pad_to_max_length=True,
+            padding='max_length',     # <--- Updated here
+            truncation=True,           # <--- Added this
             return_attention_mask=True,
             return_tensors='pt',
         )
@@ -52,17 +53,6 @@ def predict_sentiment(sample_texts):
         output = model(input_ids, attention_mask)
         _, prediction = torch.max(output, dim=1)
 
-        # print(f'Review text: {sample_text}')
-        # print(f'Sentiment  : {class_names[prediction]}')
         sentiment.append(class_names[prediction])
 
     return sentiment
-
-# i = predict_sentiment(["he is in a better place","I always lie"])
-# print(i)
-# if i<0:
-#     print("negative")
-# elif i>0:
-#     print("positive")
-# else:
-#     print("neutral")

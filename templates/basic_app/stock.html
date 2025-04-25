@@ -10,7 +10,7 @@
   <div class="card card-body p-10px">
     <div class="row">
       <div class="col">
-        <div style="text-align:center;">
+        <center>
           <h1 style="display: inline-block;">{{info.shortName}}</h1>
           {% if recommendation %}
           <p style="color:green">We recommend buying this stock</p>
@@ -19,7 +19,7 @@
           <p style="color:red">We do not recommend buying this stock</p>
           {% endif %}
 
-        </div>
+          <center>
       </div>
 
     <div class="col-4">
@@ -52,11 +52,11 @@
   <div class="row">
     <div class="col">
       <div class="card card-body">
-        <div style="text-align:center;">
+        <center>
           <h2>Technical Analysis</h2>
-        </div>
+        </center>
           <div class="row">
-            <label>Add an indicator:</label>
+            <label for="indicator">Add an indicator:</label>
             <div class="col-8 mx-auto">
 
 
@@ -80,9 +80,10 @@
           </div>
 
 
-        <div class="col-5">
-          <div id="chart-box" style="height:500px; width:650px;"></div>
+        <div class="col-12">
+          <div id="chart-box" style="height:500px; width:100%;"></div>
         </div>
+          
 
       </div>
 
@@ -92,9 +93,9 @@
     <div class="col">
       <div class="row">
         <div class="card card-body">
-          <div style="text-align:center;">
+          <center>
             <h2>Financial Analysis</h2>
-          </div>
+          </center>
             <h3>Piotroski Score</h3>
             <p>The Piotroski Score is a discrete score between zero and nine that reflects nine criteria used to determine the strength of a firm's financial position. The Piotroski Score is used to determine the best value stocks, with nine being the best and zero being the worst.</p>
             <a href="https://www.investopedia.com/terms/p/piotroski-score.asp">More about the Piotroski Score</a>
@@ -110,9 +111,9 @@
         <br>
         <div class="row">
         <div class="card card-body">
-          <div style="text-align:center;">
+          <center>
             <h2>News Sentiment</h2>
-          </div>
+          </center>
             <!-- <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p> -->
             <canvas id="densityChart" width="400" height="130"></canvas>
 
@@ -142,8 +143,8 @@
 
   <script>
 
-    var passed_data = {{data | safe}}
-    var info = {{item | safe}}
+    var passed_data = JSON.parse('{{ data|escapejs }}');
+    var info = JSON.parse('{{ item|escapejs }}');
     var $resetBtn = $('#resetButton');
     var score = {{piotroski_score | safe}}
     var percentage = Math.floor((score/9)*100);
@@ -429,33 +430,29 @@
     });
 
 
-    var densityCanvas = document.getElementById("densityChart");
+    
+var densityCanvas = document.getElementById("densityChart");
 
-// Chart.defaults.global.defaultFontFamily = "Lato";
-// Chart.defaults.global.defaultFontSize = 18;
-var sentiment_data = {{sentiment_data | safe}}
+var sentiment_data = JSON.parse('{{ sentiment_data|escapejs }}');
 var pos = sentiment_data['positive'];
 var neg = sentiment_data['negative'];
 var neu = sentiment_data['neutral'];
+
 var densityData = {
   label: 'News Sentiments',
   backgroundColor: [
     'rgba(75, 192, 192, 0.2)',
-      'rgba(255, 99, 132, 0.2)',
-
-      'rgba(255, 205, 86, 0.2)',
+    'rgba(255, 99, 132, 0.2)',
+    'rgba(255, 205, 86, 0.2)',
 
     ],
   borderColor: [
     'rgba(75, 192, 192 )',
-      'rgba(255, 99, 132)',
-
-      'rgba(255, 205, 86)',
-
+    'rgba(255, 99, 132)',
+    'rgba(255, 205, 86)',
   ],
   borderWidth:1,
   data: [pos, neg, neu],
-
 };
 
 

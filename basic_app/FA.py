@@ -9,7 +9,7 @@ def piotroski(ticker):
 
     def safe_get(df, key, index=0, default=0):
         try:
-            return df.loc[key][index]
+            return df.loc[key].iloc[index]
         except (KeyError, IndexError):
             return default
 

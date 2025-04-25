@@ -236,13 +236,7 @@ tr td:first-child:before
   
           for (var i = 0; i < data.length; i++) {
             var symbol = data[i].symbol;
-            result_box.innerHTML += `
-              <center>
-                <a class="text-dark" href="${symbol}">
-                  ${data[i].name}
-                  <p class="text-muted justify-content-center">( ${data[i].exchDisp})</p>
-                </a>
-              </center>`;
+            result_box.innerHTML += `<center><a class="text-dark" href="${data[i].symbol}">${data[i].name}<p class="text-muted justify-content-center">( ${data[i].exchange})</p></a></center>`;
           }
         } else {
           if (search_key.value.length > 0) {

@@ -23,10 +23,15 @@ def getNewsWithSentiment(key):
 
     if res['status'] == 'ok':
         articles = res['articles']
-        random_news=random.sample(articles, 12)
+        random_news = random.sample(articles, 12)
         for i in range(12):
-            random_news[i]['sentiment'] = predict_sentiment([random_news[i]['description'][:100]])[0]
-            news[i]=random_news[i]
-
+            description = random_news[i].get('description')
+            if description:
+                sentiment = predict_sentiment([description[:100]])[0]
+            else:
+                sentiment = 'neutral'  # fallback
+            random_news[i]['sentiment'] = sentiment
+            news[i] = random_news[i]
 
     return news
+

@@ -94,7 +94,6 @@ CONTENT_SECURITY_POLICY = {
         'default-src': ("'self'",),
         'script-src': (
             "'self'",
-            "'unsafe-eval'",   # Needed for AnyChart temporarily
             "'unsafe-inline'", # Bootstrap needs this, we can remove later by externalizing JS
             'https://cdn.anychart.com',
             'https://cdn.jsdelivr.net',

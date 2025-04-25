@@ -11,7 +11,7 @@
     <div class="row">
       <div class="col">
         <center>
-          <h1 style="display: inline-block;">{{info.shortName}}</h1>
+          <h1 class="d-inline-block">{{info.shortName}}</h1>
           {% if recommendation %}
           <p style="color:green">We recommend buying this stock</p>
 
@@ -103,7 +103,7 @@
             <h5>The score for this stock is: {{piotroski_score}}</h5>
 
             <div class="progress">
-              <div id ="piotroski-bar" class="progress-bar" role="progressbar" style="width:0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
+              <div id="piotroski-bar" class="progress-bar w-0" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
         </div>
 
@@ -130,19 +130,11 @@
 
   </div>
 
-
-
-
-
-
-
-
-
-
 <script type='text/javascript' src="{% static 'js/stock.js' %}"></script>
 
   <script>
 
+    anychart.env('safe_mode', true);
     var passed_data = JSON.parse('{{ data|escapejs }}');
     var info = JSON.parse('{{ item|escapejs }}');
     var $resetBtn = $('#resetButton');

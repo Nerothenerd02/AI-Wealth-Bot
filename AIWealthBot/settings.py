@@ -88,33 +88,28 @@ STATICFILES_DIRS = [STATIC_DIR]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
 CONTENT_SECURITY_POLICY = {
-    'DIRECTIVES': {
-        'default-src': ("'self'",),
-        'script-src': (
+    "DIRECTIVES": {
+        "default-src": ["'self'"],
+        "script-src": [
             "'self'",
-            "'unsafe-eval'",   # Needed for AnyChart temporarily
-            "'unsafe-inline'", # Bootstrap needs this, we can remove later by externalizing JS
-            'https://cdn.anychart.com',
-            'https://cdn.jsdelivr.net',
-            'https://ajax.googleapis.com',
-        ),
-        'style-src': (
+            "'unsafe-eval'",     # required by AnyChart
+            "'unsafe-inline'",   # only if you use inline JS
+            "cdn.anychart.com",
+            "cdn.jsdelivr.net",
+            "https://ajax.googleapis.com"
+        ],
+        "style-src": [
             "'self'",
-            "'unsafe-inline'",  # Bootstrap needs this
-            'https://cdn.anychart.com',
-            'https://cdn.jsdelivr.net',
-        ),
-        'img-src': (
+            "'unsafe-inline'",  # required if using inline <style>
+            "cdn.anychart.com",
+            "cdn.jsdelivr.net"
+        ],
+        "img-src": [
             "'self'",
-            'data:',
-            'https://cdn.anychart.com',
-            'https://ichef.bbci.co.uk',
-            'https://gizmodo.com',
-            'https://platform.theverge.com',
-        ),
-        'font-src': ("'self'", 'https://cdn.jsdelivr.net'),  # optional for Bootstrap icons/fonts
-        'connect-src': ("'self'",),
+            "data:",
+            "cdn.anychart.com",
+            "cdn.jsdelivr.net"
+        ]
     }
 }

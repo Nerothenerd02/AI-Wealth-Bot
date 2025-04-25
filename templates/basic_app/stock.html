@@ -11,7 +11,7 @@
     <div class="row">
       <div class="col">
         <center>
-          <h1 class="d-inline-block">{{info.shortName}}</h1>
+          <h1 style="display: inline-block;">{{info.shortName}}</h1>
           {% if recommendation %}
           <p style="color:green">We recommend buying this stock</p>
 
@@ -56,7 +56,7 @@
           <h2>Technical Analysis</h2>
         </center>
           <div class="row">
-            <label for="indicator">Add an indicator:</label>
+            <label>Add an indicator:</label>
             <div class="col-8 mx-auto">
 
 
@@ -80,10 +80,9 @@
           </div>
 
 
-        <div class="col-12">
-          <div id="chart-box" style="height:500px; width:100%;"></div>
+        <div class="col-5">
+          <div id="chart-box" style="height:500px; width:650px;"></div>
         </div>
-          
 
       </div>
 
@@ -103,7 +102,7 @@
             <h5>The score for this stock is: {{piotroski_score}}</h5>
 
             <div class="progress">
-              <div id="piotroski-bar" class="progress-bar w-0" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+              <div id ="piotroski-bar" class="progress-bar" role="progressbar" style="width:0%" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100"></div>
             </div>
         </div>
 
@@ -130,13 +129,21 @@
 
   </div>
 
+
+
+
+
+
+
+
+
+
 <script type='text/javascript' src="{% static 'js/stock.js' %}"></script>
 
   <script>
 
-    anychart.env('safe_mode', true);
-    var passed_data = JSON.parse('{{ data|escapejs }}');
-    var info = JSON.parse('{{ item|escapejs }}');
+    var passed_data = {{data | safe}}
+    var info = {{item | safe}}
     var $resetBtn = $('#resetButton');
     var score = {{piotroski_score | safe}}
     var percentage = Math.floor((score/9)*100);
@@ -422,47 +429,46 @@
     });
 
 
-    
-var densityCanvas = document.getElementById("densityChart");
+    var densityCanvas = document.getElementById("densityChart");
 
-var sentiment_data = JSON.parse('{{ sentiment_data|escapejs }}');
-
-if (sentiment_data && sentiment_data['positive'] !== undefined) {
-  var pos = sentiment_data['positive'];
-  var neg = sentiment_data['negative'];
-  var neu = sentiment_data['neutral'];
-
-  var densityData = {
-    label: 'News Sentiments',
-    backgroundColor: [
-      'rgba(75, 192, 192, 0.2)',
+// Chart.defaults.global.defaultFontFamily = "Lato";
+// Chart.defaults.global.defaultFontSize = 18;
+var sentiment_data = {{sentiment_data | safe}}
+var pos = sentiment_data['positive'];
+var neg = sentiment_data['negative'];
+var neu = sentiment_data['neutral'];
+var densityData = {
+  label: 'News Sentiments',
+  backgroundColor: [
+    'rgba(75, 192, 192, 0.2)',
       'rgba(255, 99, 132, 0.2)',
+
       'rgba(255, 205, 86, 0.2)',
 
-      ],
-    borderColor: [
-      'rgba(75, 192, 192 )',
-      'rgba(255, 99, 132)',
-      'rgba(255, 205, 86)',
     ],
-    borderWidth:1,
-    data: [pos, neg, neu],
-  };
+  borderColor: [
+    'rgba(75, 192, 192 )',
+      'rgba(255, 99, 132)',
+
+      'rgba(255, 205, 86)',
+
+  ],
+  borderWidth:1,
+  data: [pos, neg, neu],
+
+};
 
 
-  var barChart = new Chart(densityCanvas, {
-    type: 'bar',
-    options: {
-      indexAxis: 'y',
-    },
-    data: {
-      labels: ["Positive","Negative","Neutral"],
-      datasets: [densityData],
-    },
-  });
-} else{
-  console.warn("Sentiment data is missing or invalid.");
-}
+var barChart = new Chart(densityCanvas, {
+  type: 'bar',
+  options: {
+    indexAxis: 'y',
+  },
+  data: {
+    labels: ["Positive","Negative","Neutral"],
+    datasets: [densityData],
+  },
+});
   </script>
 
 

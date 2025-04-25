@@ -426,38 +426,43 @@
 var densityCanvas = document.getElementById("densityChart");
 
 var sentiment_data = JSON.parse('{{ sentiment_data|escapejs }}');
-var pos = sentiment_data['positive'];
-var neg = sentiment_data['negative'];
-var neu = sentiment_data['neutral'];
 
-var densityData = {
-  label: 'News Sentiments',
-  backgroundColor: [
-    'rgba(75, 192, 192, 0.2)',
-    'rgba(255, 99, 132, 0.2)',
-    'rgba(255, 205, 86, 0.2)',
+if (sentiment_data && sentiment_data['positive'] !== undefined) {
+  var pos = sentiment_data['positive'];
+  var neg = sentiment_data['negative'];
+  var neu = sentiment_data['neutral'];
 
+  var densityData = {
+    label: 'News Sentiments',
+    backgroundColor: [
+      'rgba(75, 192, 192, 0.2)',
+      'rgba(255, 99, 132, 0.2)',
+      'rgba(255, 205, 86, 0.2)',
+
+      ],
+    borderColor: [
+      'rgba(75, 192, 192 )',
+      'rgba(255, 99, 132)',
+      'rgba(255, 205, 86)',
     ],
-  borderColor: [
-    'rgba(75, 192, 192 )',
-    'rgba(255, 99, 132)',
-    'rgba(255, 205, 86)',
-  ],
-  borderWidth:1,
-  data: [pos, neg, neu],
-};
+    borderWidth:1,
+    data: [pos, neg, neu],
+  };
 
 
-var barChart = new Chart(densityCanvas, {
-  type: 'bar',
-  options: {
-    indexAxis: 'y',
-  },
-  data: {
-    labels: ["Positive","Negative","Neutral"],
-    datasets: [densityData],
-  },
-});
+  var barChart = new Chart(densityCanvas, {
+    type: 'bar',
+    options: {
+      indexAxis: 'y',
+    },
+    data: {
+      labels: ["Positive","Negative","Neutral"],
+      datasets: [densityData],
+    },
+  });
+} else{
+  console.warn("Sentiment data is missing or invalid.");
+}
   </script>
 
 

@@ -3,93 +3,111 @@
 {% block content %}
 <div class="container-fluid py-3">
 
-  <!-- Financial Summary + Alerts + Controls -->
-  <div class="row g-2 mb-4 align-items-center">
-    <div class="col-md-4 text-center">
-      <h6>📈 Invested in Stocks</h6>
-      <p class="text-primary fw-bold mb-0">${{ invested_value|floatformat:2 }}</p>
+  <!-- Financial Summary (Always Centered) -->
+  <div class="row text-center mb-3">
+    <div class="col-md-4">
+      <h5>📈 Invested in Stocks</h5>
+      <p class="text-primary fw-bold">${{ invested_value|floatformat:2 }}</p>
     </div>
-    <div class="col-md-4 text-center">
-      <h6>💼 Total Net Worth</h6>
-      <p class="text-success fw-bold mb-0">${{ total_net_worth|floatformat:2 }}</p>
+    <div class="col-md-4">
+      <h5>💼 Total Net Worth</h5>
+      <p class="text-success fw-bold">${{ total_net_worth|floatformat:2 }}</p>
     </div>
-    <div class="col-md-4 text-center">
-      <h6>💵 Cash Balance</h6>
-      <p class="fw-bold mb-0 
-         {% if cash_balance < 100 %}text-danger{% else %}text-success{% endif %}">
+    <div class="col-md-4">
+      <h5>💵 Cash Balance</h5>
+      <p class="{% if cash_balance < 100 %}text-danger{% else %}text-success{% endif %} fw-bold">
         ${{ cash_balance|floatformat:2 }}
       </p>
     </div>
+  </div>
 
-    {% if recommendation %}
-      <div class="col-12">
-        <div class="alert 
-                    {% if recommendation|slice:":2" == "⚠️" %}alert-warning pulse{% else %}alert-info{% endif %}"
-             role="alert">
-          {{ recommendation }}
-        </div>
+  <!-- Recommendation Warning (Centered) -->
+  {% if recommendation %}
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="alert {% if recommendation|slice:":2" == "⚠️" %}alert-warning pulse{% else %}alert-info{% endif %} text-center" role="alert">
+        {{ recommendation }}
       </div>
-    {% endif %}
-
-    <div class="col-md-3 offset-md-3 d-flex">
-      <form method="post" action="{% url 'basic_app:add_cash' %}" class="w-100 d-flex">
-        {% csrf_token %}
-        <input name="amount" type="number" class="form-control form-control-sm me-1" placeholder="Add Cash" min="0" step="0.01">
-        <button class="btn btn-success btn-sm">Add</button>
-      </form>
     </div>
-    <div class="col-md-3 d-flex">
-      <form method="post" action="{% url 'basic_app:withdraw_cash' %}" class="w-100 d-flex">
+  </div>
+  {% endif %}
+
+  <!-- Cash Management (Centered) -->
+  <div class="row justify-content-center mb-4">
+    <div class="col-md-6 d-flex justify-content-center gap-3">
+      <form method="post" action="{% url 'basic_app:add_cash' %}" class="d-flex w-50">
         {% csrf_token %}
-        <input name="amount" type="number" class="form-control form-control-sm me-1" placeholder="Withdraw Cash" min="0" step="0.01">
-        <button class="btn btn-danger btn-sm">Withdraw</button>
+        <input type="number" name="amount" class="form-control form-control-sm me-1" placeholder="Add Cash" min="0" step="0.01">
+        <button type="submit" class="btn btn-success btn-sm">Add</button>
+      </form>
+
+      <form method="post" action="{% url 'basic_app:withdraw_cash' %}" class="d-flex w-50">
+        {% csrf_token %}
+        <input type="number" name="amount" class="form-control form-control-sm me-1" placeholder="Withdraw Cash" min="0" step="0.01">
+        <button type="submit" class="btn btn-danger btn-sm">Withdraw</button>
       </form>
     </div>
   </div>
 
-  <!-- Main Row: Stocks (scroll) + Pie Chart -->
-  <div class="row gx-2" style="height:65vh;">
-    <!-- Stocks Table -->
-    <div class="col-lg-7 overflow-auto" style="max-height:100%;">
-      <div class="card h-100 shadow-sm">
-        <div class="card-body p-2">
-          <table class="table table-sm table-striped mb-0">
-            <thead class="table-dark sticky-top">
-              <tr>
-                <th>#</th><th>Symbol</th><th>Name</th><th>Qty</th>
-                <th>Price</th><th>Sector</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for s in stocks %}
-              <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ s.stock_symbol }}</td>
-                <td>{{ s.stock_name }}</td>
-                <td class="text-center">
-                  <div class="d-inline-flex gap-1">
-                    <a href="{% url 'basic_app:quantitySub' s.stock_symbol %}" class="btn btn-sm btn-danger">−</a>
-                    <span>{{ s.quantity }}</span>
-                    <a href="{% url 'basic_app:quantityAdd' s.stock_symbol %}" class="btn btn-sm btn-success">+</a>
-                  </div>
-                </td>
-                <td>{{ s.stock_price }}</td>
-                <td>{{ s.stock_sector_performance }}</td>
-                <td>
-                  <div class="d-grid gap-1">
-                    <a href="{% url 'basic_app:removeFromPortfolio' s.stock_symbol %}" class="btn btn-outline-danger btn-sm">Delete</a>
-                    <a href="{% url 'basic_app:prediction' s.stock_symbol %}" class="btn btn-outline-primary btn-sm">Forecast</a>
-                  </div>
-                </td>
-              </tr>
-              {% empty %}
-                <tr><td colspan="7" class="text-center text-muted">No stocks in your portfolio yet.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+</div>
+
+<!-- Main Row: Stocks (scroll) + Pie Chart -->
+<div class="row gx-2" style="height:65vh;">
+  <!-- Stocks Table -->
+  <div class="col-lg-7 overflow-auto" style="max-height:100%;">
+    <div class="card h-100 shadow-sm">
+      <div class="card-body p-2 d-flex flex-column">
+
+        <!-- Table -->
+        <table class="table table-sm table-striped mb-0">
+          <thead class="table-dark sticky-top">
+            <tr>
+              <th>#</th><th>Symbol</th><th>Name</th><th>Qty</th>
+              <th>Price</th><th>Sector</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in stocks %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ s.stock_symbol }}</td>
+              <td>{{ s.stock_name }}</td>
+              <td class="text-center">
+                <div class="d-inline-flex gap-1">
+                  <a href="{% url 'basic_app:quantitySub' s.stock_symbol %}" class="btn btn-sm btn-danger">−</a>
+                  <span>{{ s.quantity }}</span>
+                  <a href="{% url 'basic_app:quantityAdd' s.stock_symbol %}" class="btn btn-sm btn-success">+</a>
+                </div>
+              </td>
+              <td>{{ s.stock_price }}</td>
+              <td>{{ s.stock_sector_performance }}</td>
+              <td>
+                <div class="d-grid gap-1">
+                  <a href="{% url 'basic_app:removeFromPortfolio' s.stock_symbol %}" class="btn btn-outline-danger btn-sm">Delete</a>
+                  <a href="{% url 'basic_app:prediction' s.stock_symbol %}" class="btn btn-outline-primary btn-sm">Forecast</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted">No stocks in your portfolio yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- ➕ Add Stock Button -->
+        <div class="text-center mt-3">
+          <a href="{% url 'basic_app:explore_stocks' %}" class="btn btn-primary btn-sm">
+
+            ➕ Add New Stock
+          </a>
         </div>
+
       </div>
     </div>
+  </div>
+
+  <!-- (Pie Chart Column here...) -->
+
 
     <!-- Pie Chart -->
     <div class="col-lg-5 d-flex align-items-center justify-content-center">

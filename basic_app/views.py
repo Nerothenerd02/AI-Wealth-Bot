@@ -17,6 +17,9 @@ from basic_app.FA import piotroski
 from basic_app.get_news import getNews, getNewsWithSentiment
 from basic_app.get_stock_info import getStockInfo
 from basic_app.ProphetTrend import forecast
+from decimal import Decimal
+from django.shortcuts import redirect
+from basic_app.stock_data import get_price
 
 
 def dashboard(request):
@@ -381,6 +384,12 @@ def withdraw_cash(request):
         return redirect('basic_app:portfolio')
     return render(request, 'basic_app/withdraw_cash.html')
 
+@login_required(login_url='basic_app:login')
+@allowed_users(allowed_roles=['Client'])
+def explore_stocks(request):
+    return render(request, 'basic_app/search_stock.html', {
+        'page_title': "Explore Stocks"
+    })
 
 
 

@@ -34,5 +34,5 @@ urlpatterns = [
     path('portfolio/<str:symbol>/quantitySub', views.quantitySub, name="quantitySub"),
     path('portfolio/add_cash/', views.add_cash, name="add_cash"),
     path('portfolio/withdraw_cash/', views.withdraw_cash, name="withdraw_cash"),
-
+    path('explore/', views.explore_stocks, name="explore_stocks"),
 ]

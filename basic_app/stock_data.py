@@ -74,11 +74,17 @@ def get_name(ticker):
 
 def get_price(ticker):
     symbol = yf.Ticker(ticker)
-    # df  =symbol.history(interval='5m')
-    data = symbol.info
-    price  =  symbol.history(interval='5m').iloc[-1].Close
-    # print(df)
-    return([price, data['currency']])
+    hist = symbol.history(interval='5m')
+
+    if not hist.empty:
+        price = hist.iloc[-1].Close
+    else:
+        price = symbol.info.get('currentPrice', None)
+
+    currency = symbol.info.get('currency', 'USD')
+
+    return [price, currency]
+
 
 
 

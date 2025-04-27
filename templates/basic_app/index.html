@@ -2,85 +2,98 @@
 {% load static %}
 {% block content %}
 
-<div class="row">
-  <div class="col">
-    <div class="card card-body">
-      <div class="row">
-        <div class="col-2"></div>
-        <div class="col-2">
-          <img class="img-fluid" src="{% static 'images/favicon.jpeg' %}" alt="Logo">
+<!-- Welcome Section -->
+<div class="row g-4 mb-5">
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="row g-0">
+        <div class="col-4 d-flex align-items-center">
+          <img src="{% static 'images/favicon.jpeg' %}" class="img-fluid p-2" alt="AIWealthBot Logo">
         </div>
-        <div class="col">
-          <h2 style="margin-top: 0.5em">Welcome to AIWealthBot</h2>
+        <div class="col-8">
+          <div class="card-body">
+            <h2 class="card-title">Welcome to AIWealthBot</h2>
+            <p class="card-text">
+              AIWealthBot is your smart financial adviser and portfolio manager.
+              Look up stocks, view technical and financial analysis, track market news sentiment,
+              predict future prices, and receive intelligent recommendations to buy, hold, or sell.
+            </p>
+          </div>
         </div>
-      </div>
-      <div class="row">
-        <p>An AI based financial adviser and portfolio manager. AIWealthBot allows users to look up stock quotes and offers streamlined technical
-and financial analysis, news analysis, future price predictions, and simple
-recommendations to buy, sell or hold stocks. Users can also set up their own
-portfolios and receive recommendations to maximize profits.</p>
       </div>
     </div>
   </div>
 
-  <div class="col">
-    <div class="card card-body">
-      <h2 class="text-center">Your Portfolio</h2>
-      <table class="table table-sm text-center">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Stock Symbol</th>
-            <th>Stock Name</th>
-            <th>Quantity</th>
-            <th>Date Added</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for stock in portfolio_stocks %}
-          <tr>
-            <td>{{ forloop.counter }}</td>
-            <td>{{ stock.stock_symbol }}</td>   
-            <td>{{ stock.stock_name }}</td>       
-            <td>{{ stock.quantity }}</td>
-            <td>{{ stock.date_added|date:"F j, Y, g:i a" }}</td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="5" class="text-muted">No stocks in your portfolio yet.</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+  <!-- Portfolio Section -->
+  <div class="col-md-6">
+    <div class="card shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="card-title text-center mb-4">Your Portfolio</h2>
+        <table class="table table-sm text-center align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>#</th>
+              <th>Stock</th>
+              <th>Name</th>
+              <th>Qty</th>
+              <th>Date Added</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for stock in portfolio_stocks %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ stock.stock_symbol }}</td>
+                <td>{{ stock.stock_name }}</td>
+                <td>{{ stock.quantity }}</td>
+                <td>{{ stock.date_added|date:"F j, Y" }}</td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="5" class="text-muted">No stocks in your portfolio yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
 
-      <div class="text-center mt-3">
-        <a href="{% url 'basic_app:portfolio' %}" class="btn btn-primary">View Full Portfolio</a>
+        <div class="text-center">
+          <a href="{% url 'basic_app:portfolio' %}" class="btn btn-outline-primary mt-2">View Full Portfolio</a>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<br><br>
+<!-- Trending News Section -->
+<h2 class="text-center mb-4">📰 Trending News</h2>
 
-<div class="row">
-  <h2 class="text-center">Trending News</h2>
-  <br><br>
-
-  {% for key, value in news.items %}
-  <div class="col-4 d-flex">
-    <div class="card mb-3">
-      {% if value.urlToImage %}
-      <img class="card-img-top" src="{{ value.urlToImage }}" alt="News image" style="height: 50%; object-fit: cover;">
-      {% endif %}
-      <div class="card-body">
-        <h5 class="card-title">{{ value.title }}</h5>
-        <h6 class="card-subtitle mb-2 text-muted">Source: {{ value.source.name }}</h6>
-        <p class="card-text">{{ value.description }}</p>
-        <a href="{{ value.url }}" class="btn btn-primary">See Article</a>
+<div class="row row-cols-1 row-cols-md-3 g-4">
+  {% for article in news %}
+    <div class="col d-flex align-items-stretch">
+      <div class="card shadow-sm h-100">
+        {% if article.image and article.image|slice:":4" == "http" %}
+          <img src="{{ article.image }}" class="card-img-top" alt="News image" style="height: 200px; object-fit: cover;">
+        {% else %}
+          <img src="{% static 'images/news_placeholder.png' %}" class="card-img-top" alt="Placeholder" style="height: 200px; object-fit: cover;">
+        {% endif %}
+        
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ article.title|default:"No Title Available"|truncatechars:70 }}</h5>
+          <p class="card-text text-muted small mb-2">{{ article.description|default:"No description available."|truncatechars:110 }}</p>
+          <div class="mt-auto">
+            <a href="{{ article.url }}" target="_blank" class="btn btn-outline-primary w-100">Read Full Article</a>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info text-center">
+        No news available at the moment. Please check back later!
+      </div>
+    </div>
   {% endfor %}
 </div>
+
 
 {% endblock %}

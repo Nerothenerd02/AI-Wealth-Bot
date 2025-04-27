@@ -4,270 +4,227 @@
 <html lang="en" dir="ltr">
 
 <head>
-
   <meta charset="utf-8">
-  <title>{{page_title}}</title>
+  <title>{{ page_title }}</title>
   <link rel="shortcut icon" type="image/ico" href="{% static 'images/favicon.ico' %}">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script type="text/javascript">
-var user = '{{request.user}}'
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
-  function getToken(name) {
-      var cookieValue = null;
-      if (document.cookie && document.cookie !== '') {
-          var cookies = document.cookie.split(';');
-          for (var i = 0; i < cookies.length; i++) {
-              var cookie = cookies[i].trim();
-              // Does this cookie string begin with the name we want?
-              if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                  cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                  break;
-              }
-          }
-      }
-      return cookieValue;
-  }
-  var csrftoken = getToken('csrftoken')
-
-</script>
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    li a {
+      color: white;
+      text-decoration: none;
+    }
+    #navbar-search-form {
+      position: relative;
+    }
+    .results-box {
+      background: white;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1000;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+    }
+    .result-item {
+      padding: 10px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+    .result-item:hover {
+      background-color: #f1f1f1;
+    }
+    #navbar-spinner {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 1.5rem;
+      height: 1.5rem;
+      display: none;
+    }
+  </style>
 </head>
-<style>
-  body {
-    background-color:#f8f9fa;
-  }
 
-/* ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-
-}
-
-li {
-  float: left;
-} */
-
-li a, .dropbtn {
-  /* display: inline-block; */
-  color: white;
-
-  /* padding: 14px 16px; */
-  text-decoration: none;
-}
-.results-box{
-  padding: 20px;
-  text-align: center;
-}
-/* li a:hover, .dropdown:hover{
-  background-color: red;
-} */
-
-li, .dropdown-self {
-  display: inline-block;
-}
-
-.options {
-  display: block;
-
-  position: absolute;
-  background-color: #f9f9f9;
-  width: 12.7em;
-  border-radius: 5px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-}
-body
-{
-    counter-reset: Serial;           /* Set the Serial counter to 0 */
-}
-
-table
-{
-    border-collapse: separate;
-}
-
-tr td:first-child:before
-{
-  counter-increment: Serial;      /* Increment the Serial counter */
-  content:  counter(Serial); /* Display the counter */
-}
-/*
-.options a,p {
-  color: black;
-  display: block;
-  text-align: left;
-} */
-
-/* .dropdown-content a:hover {background-color: #f1f1f1;}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-} */
-</style>
 <body>
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="{% url 'basic_app:index' %}">AIWealthBot</a>
 
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        {% if request.user|has_group:"Client" %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="{% url 'basic_app:index' %}">AIWealthBot</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{% url 'basic_app:portfolio' %}">Portfolio</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="{% url 'basic_app:profile' %}">Profile</a>
-          </li>
-        </ul>
-        {% else %}
-        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-          <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="#">User Stats</a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">Portfolio Stats</a>
-          </li>
-        </ul>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      {% if request.user|has_group:"Client" %}
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="{% url 'basic_app:portfolio' %}">Portfolio</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'basic_app:profile' %}">Profile</a></li>
+      </ul>
+      {% else %}
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item"><a class="nav-link" href="#">User Stats</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Portfolio Stats</a></li>
+      </ul>
+      {% endif %}
 
-        {% endif %}
-
-
-<li>
-          <form class="d-flex">
-          <input class="form-control me-2" id = "search-input" type="search" placeholder="Search" aria-label="Search" class="nav-link dropdown-toggle">
-          <button class="btn btn-outline-success" type="submit">Search</button>
-          </form>
-
-
-          <div id="results-box" class="options d-none ">
-
-          </div>
-
-
-
-</li>
-
-      <!-- <div class="row">
-        <div class="col">
-          <ul class="navbar-nav" >
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Hi {{request.user}}</a>
-                <ul class="dropdown-menu justify-content-end" aria-labelledby="navbarDropdownMenuLink">
-
-                  <li><a class="dropdown-item" href="#">Profile</a></li>
-                  <li><a class="dropdown-item" href="{% url 'basic_app:logout' %}">Logout</a></li>
-
-                </ul>
-              </li>
+      <form id="navbar-search-form"
+      class="d-flex flex-column position-relative"
+      method="post"
+      action="{% url 'basic_app:search_stock' %}">    {# <-- updated here #}
+      {% csrf_token %}
+      <div class="position-relative w-100">
+        <input id="navbar-search-input"
+           type="search"
+           name="searchData"
+           class="form-control"
+           placeholder="Search stocks…"
+           autocomplete="off">
+    <div id="navbar-spinner"
+         class="spinner-border text-success"
+         role="status"></div>
+  </div>
+  <button class="btn btn-outline-success mt-2"
+          id="navbar-search-button"
+          type="submit">Go</button>
+  <div id="navbar-results-box"
+       class="results-box"
+       style="display:none;"></div>
+</form>
 
 
-          </ul>
-
-        </div>
-
-      </div> -->
-
-
-
-
-    <ul class="navbar-nav" >
-      <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">Hi {{request.user}}</a>
-          <ul class="dropdown-menu justify-content-end" aria-labelledby="navbarDropdownMenuLink">
-
+      <ul class="navbar-nav ms-3">
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown">
+            Hi {{ request.user }}
+          </a>
+          <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
             <li><a class="dropdown-item" href="#">Profile</a></li>
             <li><a class="dropdown-item" href="{% url 'basic_app:logout' %}">Logout</a></li>
-
           </ul>
         </li>
-        &emsp;
+      </ul>
 
-    </ul>
-
-
-
-
-      </div>
     </div>
-  </nav>
-  <div class="container-fluid">
-    <br>
-    <br>
-    {% block content %}
-
-    {% endblock %}
   </div>
+</nav>
 
-</body>
+<!-- Toast for No Result -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 2000">
+  <div id="noResultToast" class="toast bg-danger text-white" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body">
+        ❌ No matching stock found!
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+<div class="container-fluid my-3">
+  {% block content %}
+  {% endblock %}
+</div>
+
 <script>
-  console.log('hello world')
-  const search_key = document.getElementById("search-input");
-  const result_box = document.getElementById("results-box");
-  
-  let debounceTimer;
-  
-  const sendSearchData = (searchData) => {
+const searchInput = document.getElementById('navbar-search-input');
+const resultsBox  = document.getElementById('navbar-results-box');
+const spinner = document.getElementById('navbar-spinner');
+const searchButton = document.getElementById('navbar-search-button');
+const noResultToast = new bootstrap.Toast(document.getElementById('noResultToast'));
+let debounceTimer;
+
+// Live Typing Ajax
+searchInput.addEventListener('keyup', function(e) {
+  clearTimeout(debounceTimer);
+  const value = e.target.value.trim();
+
+  if (value.length === 0) {
+    resultsBox.style.display = 'none';
+    resultsBox.innerHTML = '';
+    return;
+  }
+
+  debounceTimer = setTimeout(() => {
+    spinner.style.display = 'inline-block';
+
     $.ajax({
       type: 'POST',
-      url: '',
+      url: "{% url 'basic_app:search_stock' %}",
       data: {
-        'searchData': searchData,
-        'csrfmiddlewaretoken': '{{csrf_token}}'
+        'csrfmiddlewaretoken': '{{ csrf_token }}',
+        'searchData': value
       },
-      success: (res) => {
-        console.log(res.data)
-        const data = res.data;
-  
-        if (Array.isArray(data)) {
-          result_box.innerHTML = "";
-          
-          // Check for rate limit or empty results
-          if (data.length === 0 || data[0]?.name === "Rate Limit Reached") {
-            result_box.innerHTML = `<center><p class="text-danger">Too many requests. Try again in a few seconds.</p></center>`;
-            return;
-          }
-  
-          for (var i = 0; i < data.length; i++) {
-            var symbol = data[i].symbol;
-            result_box.innerHTML += `<center><a class="text-dark" href="${data[i].symbol}">${data[i].name}<p class="text-muted justify-content-center">( ${data[i].exchange})</p></a></center>`;
-          }
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: ({ data }) => {
+        spinner.style.display = 'none';
+        resultsBox.innerHTML = '';
+
+        if (Array.isArray(data) && data.length > 0) {
+          data.forEach(stock => {
+            resultsBox.innerHTML += `
+              <div class="result-item">
+                <a href="/home/${stock.symbol}" class="text-dark text-decoration-none">
+                  ${stock.name} <small class="text-muted">(${stock.symbol})</small>
+                </a>
+              </div>
+            `;
+          });
+          resultsBox.style.display = 'block';
         } else {
-          if (search_key.value.length > 0) {
-            result_box.innerHTML = '<p>' + data + '</p>';
-          } else {
-            result_box.classList.add('d-none');
-          }
+          resultsBox.innerHTML = `<div class="p-2 text-muted">No matching stocks found</div>`;
+          resultsBox.style.display = 'block';
         }
       },
       error: (err) => {
-        console.error(err);
+        spinner.style.display = 'none';
+        console.error('Navbar AJAX error:', err);
       }
     });
-  };
-  
-  search_key.addEventListener('keyup', (e) => {
-    clearTimeout(debounceTimer);
-  
-    const value = e.target.value;
-  
-    if (value.length === 0) {
-      result_box.classList.add('d-none');
-      return;
-    }
-  
-    result_box.classList.remove('d-none');
-  
-    debounceTimer = setTimeout(() => {
-      sendSearchData(value);
-    }, 500); // Delay by 500ms
-  });
+  }, 300);
+});
+
+// Manual Go Button
+searchButton.addEventListener('click', function(e) {
+  e.preventDefault();
+  const value = searchInput.value.trim();
+  if (value.length > 0) {
+    $.ajax({
+      type: 'POST',
+      url: "{% url 'basic_app:search_stock' %}",
+
+      data: {
+        'csrfmiddlewaretoken': '{{ csrf_token }}',
+        'searchData': value
+      },
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: ({ data }) => {
+        if (Array.isArray(data) && data.length > 0) {
+          window.location.href = `/home/${data[0].symbol}`;
+        } else {
+          noResultToast.show();
+        }
+      },
+      error: (err) => {
+        console.error('Navbar Go button error:', err);
+      }
+    });
+  }
+});
 </script>
-  
+
+</body>
 </html>

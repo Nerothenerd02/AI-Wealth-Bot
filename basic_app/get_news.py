@@ -1,37 +1,112 @@
 import requests
 import random
+from django.templatetags.static import static
 from basic_app.sentiment_analysis import predict_sentiment
+
+NEWS_API_KEY = "9b23adeb6a634a0ba1f62e76dcbc54de"
+PAGE_SIZE    = 12
+PLACEHOLDER  = static('images/news_placeholder.png')
+
+
 def getNews(key):
-    r = requests.get(f"https://newsapi.org/v2/everything?q={key}&pageSize=12&apiKey=9b23adeb6a634a0ba1f62e76dcbc54de")
-    res = r.json()
-    news = {}
+    """
+    Fetch up to PAGE_SIZE news articles about `key` (string).
+    Returns a list of dicts with title, description, author, url, image.
+    No sentiment analysis.
+    """
+    try:
+        url = (
+            f"https://newsapi.org/v2/everything"
+            f"?q={requests.utils.quote(key)}"
+            f"&pageSize={PAGE_SIZE}"
+            f"&apiKey={NEWS_API_KEY}"
+        )
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.RequestException as e:
+        print(f"[getNews] Network error: {e}")
+        return []
 
-    if res['status'] == 'ok':
-        articles = res['articles']
-        random_news=random.sample(articles, 12)
-        for i in range(12):
-            #random_news[i]['sentiment'] = predict_sentiment([random_news[i]['description'][:100]])[0]
-            news[i]=random_news[i]
+    news_list = []
+    if data.get('status') == 'ok' and 'articles' in data:
+        articles = data['articles']
+        sampled = random.sample(articles, min(PAGE_SIZE, len(articles)))
+        for article in sampled:
+            title       = article.get('title') or "No title available"
+            description = article.get('description') or "No description available"
+            author      = article.get('author') or "Unknown author"
+            link        = article.get('url') or "#"
+            img         = article.get('urlToImage') or ""
+            if not img.startswith('http'):
+                img = PLACEHOLDER
+
+            news_list.append({
+                'title':       title,
+                'description': description,
+                'author':      author,
+                'url':         link,
+                'image':       img,
+            })
+    else:
+        print("[getNews] No valid articles found.")
+
+    return news_list
 
 
-    return news
+def getNewsWithSentiment(stock_name):
+    """
+    Same as getNews(), but also runs sentiment analysis
+    on each article’s combined title+description.
+    """
+    try:
+        url = (
+            f"https://newsapi.org/v2/everything"
+            f"?q={requests.utils.quote(stock_name)}"
+            f"&pageSize={PAGE_SIZE}"
+            f"&apiKey={NEWS_API_KEY}"
+        )
+        resp = requests.get(url, timeout=5)
+        resp.raise_for_status()
+        data = resp.json()
+    except requests.RequestException as e:
+        print(f"[getNewsWithSentiment] Network error: {e}")
+        return []
 
-def getNewsWithSentiment(key):
-    r = requests.get(f"https://newsapi.org/v2/everything?q={key}&pageSize=12&apiKey=9b23adeb6a634a0ba1f62e76dcbc54de")
-    res = r.json()
-    news = {}
+    news_list = []
+    if data.get('status') == 'ok' and 'articles' in data:
+        articles = data['articles']
+        sampled = random.sample(articles, min(PAGE_SIZE, len(articles)))
 
-    if res['status'] == 'ok':
-        articles = res['articles']
-        random_news = random.sample(articles, 12)
-        for i in range(12):
-            description = random_news[i].get('description')
-            if description:
-                sentiment = predict_sentiment([description[:100]])[0]
+        # build texts for batch sentiment
+        texts = []
+        for art in sampled:
+            txt = (art.get('title') or "") + ". " + (art.get('description') or "")
+            texts.append(txt.strip() or "No content available")
+
+        sentiments = predict_sentiment(texts)
+
+        for art, sentiment in zip(sampled, sentiments):
+            title       = art.get('title') or "No title available"
+            description = art.get('description') or "No description available"
+            author      = art.get('author') or "Unknown author"
+            link        = art.get('url') or "#"
+            img         = art.get('urlToImage') or ""
+            if not img.startswith('http'):
+                img = PLACEHOLDER
+                print(f"[IMAGE] ⚠️ No valid image, using placeholder.")
             else:
-                sentiment = 'neutral'  # fallback
-            random_news[i]['sentiment'] = sentiment
-            news[i] = random_news[i]
+                print(f"[IMAGE] ✅ Using external image: {img}")
 
-    return news
+            news_list.append({
+                'title':       title,
+                'description': description,
+                'author':      author,
+                'url':         link,
+                'image':       img,
+                'sentiment':   sentiment,
+            })
+    else:
+        print("[getNewsWithSentiment] No valid articles found.")
 
+    return news_list

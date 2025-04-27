@@ -2,83 +2,140 @@
 {% load static %}
 {% block content %}
 
-<div class="container my-5">
-    <h2 class="text-center mb-4">🔍 Explore Stocks</h2>
+<div class="container py-5">
 
-    <div class="row justify-content-center mb-4">
-        <div class="col-md-8">
-            <input id="search-input" type="text" class="form-control" placeholder="Type a stock name or symbol...">
+  <h2 class="text-center mb-4 fw-bold">
+    <i class="bi bi-search"></i> Explore Stocks
+  </h2>
+
+  <!-- Search Input -->
+  <div class="row justify-content-center mb-4">
+    <div class="col-md-8 col-lg-6">
+      <div class="input-group shadow-sm position-relative">
+        <input type="text"
+               id="explore-search-input"
+               name="searchData"
+               class="form-control form-control-lg"
+               placeholder="Type a stock name or symbol..."
+               autocomplete="off">
+        <div id="explore-spinner"
+             class="spinner-border text-success position-absolute"
+             role="status"
+             style="right:10px; top:50%; transform:translateY(-50%); display:none;">
+          <span class="visually-hidden">Loading...</span>
         </div>
+      </div>
+      <div id="explore-results-box" class="results-box mt-1" style="display:none;"></div>
     </div>
+  </div>
 
-    <div id="results-box" class="row gy-4 justify-content-center">
-        <!-- Search results will dynamically appear here -->
+  <!-- Predefined Stock Dropdown -->
+  <div class="row justify-content-center mb-5">
+    <div class="col-md-8 col-lg-6 text-center">
+      <label for="stockPicker" class="form-label fw-semibold mb-2">
+        Or pick from popular stocks:
+      </label>
+      <select id="stockPicker" class="form-select form-select-lg shadow-sm">
+        <option value="">-- Select a Stock --</option>
+        <option value="AAPL">🍏 Apple Inc. (AAPL)</option>
+        <option value="MSFT">💻 Microsoft Corporation (MSFT)</option>
+        <option value="TSLA">🚗 Tesla, Inc. (TSLA)</option>
+        <option value="AMZN">📦 Amazon.com, Inc. (AMZN)</option>
+        <option value="GOOGL">🔍 Alphabet Inc. (GOOGL)</option>
+        <option value="NVDA">🧠 NVIDIA Corporation (NVDA)</option>
+        <option value="META">📘 Meta Platforms, Inc. (META)</option>
+        <option value="NFLX">🎬 Netflix, Inc. (NFLX)</option>
+        <option value="BABA">🛒 Alibaba Group Holding (BABA)</option>
+        <option value="DIS">🏰 The Walt Disney Company (DIS)</option>
+      </select>
     </div>
+  </div>
+
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Loader -->
+<div id="loader" class="text-center d-none">
+  <div class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+  </div>
+  <p class="mt-2">Searching for the best stock info…</p>
+</div>
+
 <script>
-const searchInput = document.getElementById('search-input');
-const resultsBox = document.getElementById('results-box');
-let debounceTimer;
+const exploreInput = document.getElementById('explore-search-input');
+const exploreBox = document.getElementById('explore-results-box');
+const exploreSpinner = document.getElementById('explore-spinner');
+const stockPicker = document.getElementById('stockPicker');
+let debounceExplore;
 
-const sendSearchData = (searchTerm) => {
+// Typing AJAX search
+exploreInput.addEventListener('keyup', function(e) {
+  clearTimeout(debounceExplore);
+  const value = e.target.value.trim();
+
+  if (value.length === 0) {
+    exploreBox.style.display = 'none';
+    exploreBox.innerHTML = '';
+    return;
+  }
+
+  debounceExplore = setTimeout(() => {
+    exploreSpinner.style.display = 'inline-block';
+
     $.ajax({
-        type: 'POST',
-        url: "{% url 'basic_app:search' %}",
-        data: {
-            'csrfmiddlewaretoken': '{{ csrf_token }}',
-            'searchData': searchTerm
-        },
-        success: (res) => {
-            const data = res.data;
-            resultsBox.innerHTML = "";
+      type: 'POST',
+      url: "{% url 'basic_app:search_stock' %}",
+      data: {
+        'csrfmiddlewaretoken': '{{ csrf_token }}',
+        'searchData': value
+      },
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      success: ({ data }) => {
+        exploreSpinner.style.display = 'none';
+        exploreBox.innerHTML = '';
 
-            if (Array.isArray(data)) {
-                if (data.length === 0 || data[0]?.name === "Rate Limit Reached") {
-                    resultsBox.innerHTML = "<div class='text-center text-danger'>Too many requests. Try again soon.</div>";
-                    return;
-                }
-
-                data.forEach(stock => {
-                    resultsBox.innerHTML += `
-                        <div class="col-md-4">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body d-flex flex-column justify-content-between">
-                                    <h5 class="card-title">${stock.name} (${stock.symbol})</h5>
-                                    <h6 class="card-subtitle mb-2 text-muted">${stock.exchange}</h6>
-                                    <div class="mt-3 d-grid gap-2">
-                                        <a href="/stock/${stock.symbol}" class="btn btn-outline-primary btn-sm">View Analysis</a>
-                                        <a href="/portfolio/add/${stock.symbol}" class="btn btn-success btn-sm">Add to Portfolio</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                resultsBox.innerHTML = `<div class='text-center text-muted'>${data}</div>`;
-            }
-        },
-        error: (err) => {
-            console.error(err);
+        if (Array.isArray(data) && data.length > 0) {
+          data.forEach(stock => {
+            exploreBox.innerHTML += `
+              <div class="result-item">
+                <a href="/home/${stock.symbol}" class="text-dark text-decoration-none">
+                  ${stock.name} <small class="text-muted">(${stock.symbol})</small>
+                </a>
+              </div>
+            `;
+          });
+          exploreBox.style.display = 'block';
+        } else {
+          exploreBox.innerHTML = `<div class="p-2 text-muted">No matching stocks found</div>`;
+          exploreBox.style.display = 'block';
         }
+      },
+      error: (err) => {
+        exploreSpinner.style.display = 'none';
+        console.error('Explore AJAX error:', err);
+      }
     });
-};
-
-searchInput.addEventListener('keyup', (e) => {
-    clearTimeout(debounceTimer);
-    const value = e.target.value;
-
-    if (value.length === 0) {
-        resultsBox.innerHTML = "";
-        return;
-    }
-
-    debounceTimer = setTimeout(() => {
-        sendSearchData(value);
-    }, 500);
+  }, 300);
 });
+
+// Popular stocks picker
+stockPicker.addEventListener('change', function() {
+  const picked = this.value;
+  if (picked) {
+    showLoader();
+    setTimeout(() => {
+      window.location.href = `/home/${picked}`;
+    }, 300);
+  }
+});
+
+function showLoader() {
+  document.body.style.opacity = '0.6';
+  document.getElementById('loader').classList.remove('d-none');
+}
+
 </script>
 
 {% endblock %}

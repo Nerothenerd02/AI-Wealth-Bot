@@ -93,23 +93,25 @@ CONTENT_SECURITY_POLICY = {
         "default-src": ["'self'"],
         "script-src": [
             "'self'",
-            "'unsafe-eval'",     # required by AnyChart
-            "'unsafe-inline'",   # only if you use inline JS
+            "'unsafe-eval'",
+            "'unsafe-inline'",
             "cdn.anychart.com",
             "cdn.jsdelivr.net",
             "https://ajax.googleapis.com"
         ],
         "style-src": [
             "'self'",
-            "'unsafe-inline'",  # required if using inline <style>
+            "'unsafe-inline'",
             "cdn.anychart.com",
             "cdn.jsdelivr.net"
         ],
         "img-src": [
             "'self'",
             "data:",
+            "https:",  
             "cdn.anychart.com",
             "cdn.jsdelivr.net"
         ]
     }
 }
+

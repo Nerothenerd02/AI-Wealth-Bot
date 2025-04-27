@@ -1,13 +1,37 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title></title>
-  </head>
-  <body>
-    <br>
-    <h1>Welcome to base</h1>
-    <p>Click here to, <a href="{% url 'basic_app:login' %}">Login</a></p>
+{# templates/basic_app/dashboard.html #}
+{% extends 'basic_app/base.html' %}
+{% load static %}
 
-  </body>
-</html>
+{% block content %}
+  <style>
+    /* Hero section, full-width under the navbar */
+    .hero {
+      background: url("{% static 'images/background.jpg' %}") no-repeat center center fixed;
+      background-size: cover;
+      width: 100%;
+      /* Subtract navbar height (56px) so it fits exactly in viewport */
+      height: calc(100vh - 56px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    /* Semi-opaque white “card” */
+    .hero .overlay {
+      background-color: rgba(255,255,255,0.85);
+      padding: 2rem 3rem;
+      border-radius: .5rem;
+      text-align: center;
+      max-width: 600px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+  </style>
+
+  <div class="hero">
+    <div class="overlay">
+      <h1 class="display-4 mb-3">Welcome to AI Wealth Bot</h1>
+      <p class="lead mb-4">Your one-stop AI-driven investment dashboard.</p>
+      <a href="{% url 'basic_app:login' %}" class="btn btn-primary btn-lg me-2">Login</a>
+      <a href="{% url 'basic_app:register' %}" class="btn btn-outline-secondary btn-lg">Register</a>
+    </div>
+  </div>
+{% endblock %}

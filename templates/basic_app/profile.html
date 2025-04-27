@@ -1,5 +1,20 @@
 {% extends 'basic_app/base.html' %}
+{% load static %}
+{% block title %}Profile – AIWealthBot{% endblock %}
+
 {% block content %}
-<p>User Info, name, pwd, profile_picture etc</p>
-<p>To be done later</p>
+<div class="profile-page d-flex justify-content-center align-items-center" style="min-height: calc(100vh - 56px);">
+  <div class="profile-card p-4 rounded shadow" style="background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(6px); width: 100%; max-width: 500px;">
+    <div class="card-header bg-primary text-white rounded mb-4 p-3 text-center">
+      <h4 class="mb-0">Your Profile</h4>
+    </div>
+
+    <div class="card-body text-center p-0">
+      <p><strong>Username:</strong> {{ client.username }}</p>
+      <p><strong>Email:</strong> {{ client.email }}</p>
+      <hr>
+      <a href="#" class="btn btn-outline-primary w-100">Change Password</a>
+    </div>
+  </div>
+</div>
 {% endblock %}

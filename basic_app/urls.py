@@ -30,4 +30,6 @@ urlpatterns = [
     path('portfolio/withdraw_cash/', views.withdraw_cash, name='withdraw_cash'),
 
     path('explore/', views.explore_stocks, name='explore_stocks'),
+    path('indicator/<str:symbol>/<str:indicator>/', views.get_indicator, name='get_indicator'),
+
 ]

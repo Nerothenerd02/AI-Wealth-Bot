@@ -1,85 +1,48 @@
 import pandas as pd
 import yfinance as yf
-import matplotlib.pyplot as plt
-import numpy as np
-import talib as ta
-plt.style.use('seaborn')
+import ta
 
 def sma(ticker):
-    df = yf.Ticker(ticker).history(period='1y')
-    # print(df.head())
-    df['SMA'] = ta.SMA(df['Close'],20)
-    df[['SMA']].plot(figsize=(12,12))
-    # plt.show()
-    return plt
+    df = yf.Ticker(ticker).history(period='1y').reset_index()
+    df['SMA'] = ta.trend.sma_indicator(df['Close'], window=20)
+    return df[['Date', 'SMA']].dropna()
 
 def ema(ticker):
-    df = yf.Ticker(ticker).history(period='1y')
-    # print(df.head())
-    df['EMA'] = ta.EMA(df['Close'],20)
-    df[['EMA']].plot(figsize=(12,12))
-    # plt.show()
-    return plt
+    df = yf.Ticker(ticker).history(period='1y').reset_index()
+    df['EMA'] = ta.trend.ema_indicator(df['Close'], window=20)
+    return df[['Date', 'EMA']].dropna()
 
 def macd(ticker):
-    df = yf.Ticker(ticker).history(period='1y')
-    # print(df.head())
-    df['MACD'], df['MACDSIGNAL'], df['MACDHIST'] = ta.MACD(df['Close'],20)
-    df[['MACD','MACDSIGNAL', 'MACDHIST']].plot(figsize=(12,12))
-    # plt.show()
-    return plt
-    
+    df = yf.Ticker(ticker).history(period='1y').reset_index()
+    df['MACD'] = ta.trend.macd(df['Close'])
+    df['MACD_SIGNAL'] = ta.trend.macd_signal(df['Close'])
+    return df[['Date', 'MACD', 'MACD_SIGNAL']].dropna()
+
 def rsi(ticker):
-    df = yf.Ticker(ticker).history(period='1y')
-    # print(df.head())
-    df['RSI'] = ta.RSI(df['Close'],20)
-    df[['RSI']].plot(figsize=(12,12))
-    # plt.show()
-    return plt
-
-def adx(ticker):
-    df = yf.Ticker(ticker).history(period='1y')
-    # print(df.head())
-    df['ADX'] = ta.ADX(df['High'], df['Low'], df['Close'],20)
-    df[['ADX']].plot(figsize=(12,12))
-    # plt.show()
-    return plt
-
-def bband(ticker):
-    df = yf.Ticker(ticker).history(period='1y')
-    # print(df.head())
-    df['UpBand'], df['MidBand'], df['LowBand'] = ta.BBANDS(df['Close'], timeperiod =20)
-    df[['UpBand','MidBand','LowBand']].plot(figsize=(12,12))
-    # plt.show()
-    return plt
+    df = yf.Ticker(ticker).history(period='1y').reset_index()
+    df['RSI'] = ta.momentum.rsi(df['Close'], window=14)
+    return df[['Date', 'RSI']].dropna()
 
 def obv(ticker):
-    df = yf.Ticker(ticker).history(period='1y')
-    # print(df.head())
-    df['OBV'] = ta.OBV(df['Close'], df['Volume'])
-    df[['OBV']].plot(figsize=(12,12))
-    # plt.show()
-    return plt
+    df = yf.Ticker(ticker).history(period='1y').reset_index()
+    df['OBV'] = ta.volume.on_balance_volume(df['Close'], df['Volume'])
+    return df[['Date', 'OBV']].dropna()
 
-def pivots(ticker):  
-    df = yf.Ticker(ticker).history(interval='1d').tail(1)
-    # print(df)
-    df = df.reset_index(drop=True, inplace=False)
-    pp = float((df['High'] + df['Low'] + df['Close'])/3)
-    r1 = float(2*pp - df['Low'])
-    s1 = float(2*pp - df['High'])
-    r2 = float(pp + (df['High'] - df['Low']))
-    s2 = float(pp - (df['High'] - df['Low']))
-    r3 = float(pp + 2*(df['High'] - df['Low']))
-    s3 = float(pp - 2*(df['High'] - df['Low']))
-    # print(pp, r1, r2, r3, s1, s2, s3)
-    return pp, r1, r2, r3, s1, s2, s3
+def bband(ticker):
+    df = yf.Ticker(ticker).history(period='1y').reset_index()
+    bb = ta.volatility.BollingerBands(df['Close'], window=20)
+    df['BB_UPPER'] = bb.bollinger_hband()
+    df['BB_LOWER'] = bb.bollinger_lband()
+    df['BB_MID'] = bb.bollinger_mavg()
+    return df[['Date', 'BB_UPPER', 'BB_LOWER', 'BB_MID']].dropna()
 
-# sma('msft')
-# ema('msft')
-# macd('msft')
-# rsi('msft')
-# adx('msft')
-# bband('msft')
-# obv('msft')
-# pivots('hdfcbank.ns')
+def pivots(ticker):
+    df = yf.Ticker(ticker).history(interval='1d').tail(1).reset_index()
+    pp = (df['High'] + df['Low'] + df['Close']) / 3
+    r1 = 2 * pp - df['Low']
+    s1 = 2 * pp - df['High']
+    r2 = pp + (df['High'] - df['Low'])
+    s2 = pp - (df['High'] - df['Low'])
+    r3 = pp + 2 * (df['High'] - df['Low'])
+    s3 = pp - 2 * (df['High'] - df['Low'])
+    return float(pp), float(r1), float(r2), float(r3), float(s1), float(s2), float(s3)

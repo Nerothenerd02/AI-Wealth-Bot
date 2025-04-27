@@ -1,85 +1,102 @@
 {% extends 'basic_app/base.html' %}
 {% load static %}
 {% block content %}
-  <!-- Chart libraries -->
-  <script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-core.min.js"></script>
-  <script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-stock.min.js"></script>
-  <script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-data-adapter.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chart libraries -->
+<script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-core.min.js"></script>
+<script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-stock.min.js"></script>
+<script src="https://cdn.anychart.com/releases/8.7.1/js/anychart-data-adapter.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Stock Overview -->
-  <div class="card card-body p-10px">
-    <div class="row">
-      <div class="col text-center">
-        <h1>{{ info.shortName }}</h1>
-        {% if recommendation %}
-          <p class="text-success">We recommend buying this stock</p>
-        {% else %}
-          <p class="text-danger">We do not recommend buying this stock</p>
-        {% endif %}
+<div class="container py-5">
+  <!-- Stock Overview Card -->
+  <div class="card shadow-sm mb-5">
+    <div class="card-body text-center">
+      <h1 class="card-title">{{ info.shortName }}</h1>
+      {% if recommendation %}
+        <p class="text-success fw-bold">✅ We recommend buying this stock</p>
+      {% else %}
+        <p class="text-danger fw-bold">⚠️ We do not recommend buying this stock</p>
+      {% endif %}
+      <div class="d-flex justify-content-center gap-3 mt-3">
+        <a href="{{ info.symbol }}/add" class="btn btn-primary btn-lg">➕ Add to Portfolio</a>
+        <a href="{% url 'basic_app:prediction' info.symbol %}" class="btn btn-success btn-lg">📈 See Price Prediction</a>
       </div>
-      <div class="col-4 text-end">
-        <a href="{{ info.symbol }}/add" class="btn btn-primary">Add to Portfolio</a>
-        <a href="{% url 'basic_app:prediction' info.symbol %}" class="btn btn-success">See Price Prediction</a>
-      </div>
-    </div>
-    <div class="row mt-3">
-      <div class="col">
-        <p>{{ info.longBusinessSummary }}</p>
+      <div class="mt-4">
+        <p class="lead">{{ info.longBusinessSummary }}</p>
       </div>
     </div>
   </div>
 
-  <br>
+  <div class="row g-4">
+    <!-- Technical Analysis Chart -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title text-center mb-3">📊 Technical Analysis</h2>
+          
+          <div class="row g-2 align-items-center mb-3">
+            <div class="col-auto">
+              <label for="indicatorSelect" class="col-form-label">Add an indicator:</label>
+            </div>
+            <div class="col">
+              <select id="indicatorSelect" class="form-select">
+                <option value="NONE" selected>None</option>
+                <option value="BB">Bollinger Bands (BB)</option>
+                <option value="Pivots">Pivots</option>
+                <option value="EMA">Exponential Moving Average (EMA)</option>
+                <option value="SMA">Simple Moving Average (SMA)</option>
+                <option value="MACD">MACD</option>
+                <option value="RSI">RSI</option>
+                <option value="OBV">On Balance Volume (OBV)</option>
+              </select>
+            </div>
+            <div class="col-auto">
+              <button id="resetButton" class="btn btn-outline-secondary btn-sm">Reset</button>
+            </div>
+          </div>
 
-  <div class="row">
-    <!-- Technical Analysis -->
-    <div class="col">
-      <div class="card card-body">
-        <h2 class="text-center">Technical Analysis</h2>
-        <div class="row align-items-center">
-          <label class="col-auto">Add an indicator:</label>
-          <div class="col-6">
-            <select id="indicatorSelect" class="form-select">
-              <option value="NONE" selected>None</option>
-              <option value="BB">BB</option>
-              <option value="Pivots">Pivots</option>
-              <option value="EMA">EMA</option>
-              <option value="SMA">SMA</option>
-              <option value="MACD">MACD</option>
-              <option value="RSI">RSI</option>
-              <option value="OBV">OBV</option>
-            </select>
-          </div>
-          <div class="col-auto">
-            <button id="resetButton" class="btn btn-primary btn-sm">Reset</button>
-          </div>
+          <div id="chart-box" class="w-100" style="height:500px;"></div>
         </div>
-        <div id="chart-box" class="mt-3" style="height:500px; width:650px;"></div>
       </div>
     </div>
 
-    <!-- Financial & Sentiment Analysis -->
-    <div class="col">
-      <!-- Piotroski Score -->
-      <div class="card card-body mb-3">
-        <h2 class="text-center">Financial Analysis</h2>
-        <h3>Piotroski Score</h3>
-        <p>The Piotroski Score (0–9) reflects nine criteria used to determine the strength of a firm's financial position.</p>
-        <a href="https://www.investopedia.com/terms/p/piotroski-score.asp" target="_blank">More about the Piotroski Score</a>
-        <h5 class="mt-2">Score: {{ piotroski_score }}</h5>
-        <div class="progress">
-          <div id="piotroski-bar" class="progress-bar" role="progressbar" style="width:0%"></div>
+    <!-- Financial + Sentiment -->
+    <div class="col-lg-6">
+      <div class="card shadow-sm mb-4">
+        <div class="card-body">
+          <h2 class="card-title text-center mb-3">💵 Financial Analysis</h2>
+          <h4>Piotroski Score</h4>
+          <p class="small text-muted">
+            The Piotroski Score (0–9) reflects nine criteria to determine the strength of a firm's financial position.
+          </p>
+          <a href="https://www.investopedia.com/terms/p/piotroski-score.asp" target="_blank" class="small">Learn More →</a>
+          <div class="mt-3">
+            <h5 class="text-center">Score: {{ piotroski_score }}</h5>
+            <div class="progress">
+              <div id="piotroski-bar" class="progress-bar" role="progressbar" style="width:0%"></div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- News Sentiment -->
-      <div class="card card-body">
-        <h2 class="text-center">News Sentiment</h2>
-        <canvas id="sentimentChart" width="400" height="130"></canvas>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="card-title text-center mb-3">📰 News Sentiment</h2>
+          <canvas id="sentimentChart" height="150"></canvas>
+        </div>
       </div>
     </div>
   </div>
+</div>
+
+<!-- JSON Data -->
+{{ data|json_script:"historical-data" }}
+{{ item|json_script:"metadata" }}
+{{ sentiment_data|json_script:"sentiment-data" }}
+<script id="piotroski-score" type="application/json">{{ piotroski_score }}</script>
+
+
+
 
   {# Inline JSON data safely via json_script #}
   {{ data|json_script:"historical-data" }}
@@ -88,15 +105,30 @@
   <script id="piotroski-score" type="application/json">{{ piotroski_score }}</script>
 
   <script>
-    // Parse JSON blobs from <script type="application/json"> tags
-    const historicalData = JSON.parse(document.getElementById('historical-data').textContent);
-    const metadata       = JSON.parse(document.getElementById('metadata').textContent);
-    const sentimentStats = JSON.parse(document.getElementById('sentiment-data').textContent);
-    const piotroskiScore = JSON.parse(document.getElementById('piotroski-score').textContent);
-  
-    // 1) Animate Piotroski bar
+    console.log("[DEBUG] Script starting...");
+    
+    // Parse JSON blobs
+    let historicalData, metadata, sentimentStats, piotroskiScore;
+    try {
+      historicalData = JSON.parse(document.getElementById('historical-data').textContent);
+      metadata = JSON.parse(document.getElementById('metadata').textContent);
+      sentimentStats = JSON.parse(document.getElementById('sentiment-data').textContent);
+      piotroskiScore = JSON.parse(document.getElementById('piotroski-score').textContent);
+    
+      console.log("[DEBUG] Parsed JSON successfully:", {
+        historicalDataLength: historicalData.length,
+        metadata,
+        sentimentStats,
+        piotroskiScore
+      });
+    } catch (e) {
+      console.error("[ERROR] Parsing JSON blobs failed:", e);
+    }
+    
+    // Animate Piotroski bar
     (function animateBar() {
       const pct = Math.floor((piotroskiScore / 9) * 100);
+      console.log("[DEBUG] Animating Piotroski bar to", pct, "%");
       const bar = document.getElementById('piotroski-bar');
       let current = 0;
       (function step() {
@@ -110,107 +142,152 @@
         }
       })();
     })();
-  
-    // 2) Initialize and draw the stock chart
-    let stockChart;
-    function drawStock() {
-      stockChart = anychart.stock();
-      const table = anychart.data.table('Date');
-      table.addData(historicalData);
-  
-      const mapping = table.mapAs({ open: 'Open', high: 'High', low: 'Low', close: 'Close' });
-  
-      const plot0 = stockChart.plot(0);
-      plot0.candlestick(mapping).name(metadata.name + ' Candlestick');
-  
-      stockChart.title(metadata.name + ' Candlestick Chart');
-      stockChart.container('chart-box');
-      stockChart.draw();
-  
-      // Auto-zoom to last 6 months
-      const dataLength = historicalData.length;
-      if (dataLength > 120) {
-        stockChart.selectRange(
-          historicalData[dataLength - 120]['Date'], 
-          historicalData[dataLength - 1]['Date']
-        );
+    
+    // Define TechnicalAnalysisChart class
+    class TechnicalAnalysisChart {
+      constructor({ historicalData, metadata, containerId, selectId, resetButtonId }) {
+        console.log("[DEBUG] Initializing TechnicalAnalysisChart...");
+        this.historicalData = historicalData;
+        this.metadata = metadata;
+        this.containerId = containerId;
+        this.selectEl = document.getElementById(selectId);
+        this.resetBtn = document.getElementById(resetButtonId);
+        this._initChart();
+        this._attachListeners();
+      }
+    
+      _initChart() {
+        console.log("[DEBUG] Chart _initChart() called");
+        this.chart = anychart.stock();
+        this.dataTable = anychart.data.table('Date');
+        this.dataTable.addData(this.historicalData);
+        this.mapping = this.dataTable.mapAs({ open: 'Open', high: 'High', low: 'Low', close: 'Close' });
+        this.plot0 = this.chart.plot(0);
+        this.plot0.candlestick(this.mapping).name(`${this.metadata.name} Candlestick`);
+        this.chart.title(`${this.metadata.name} Candlestick Chart`).container(this.containerId).draw();
+    
+        const n = this.historicalData.length;
+        if (n > 120) {
+          console.log("[DEBUG] Auto-zooming to last 120 data points");
+          this.chart.selectRange(this.historicalData[n - 120].Date, this.historicalData[n - 1].Date);
+        }
+      }
+    
+      _attachListeners() {
+        console.log("[DEBUG] Attaching listeners...");
+        this.resetBtn.addEventListener('click', () => {
+          console.log("[DEBUG] Reset button clicked");
+          this.selectEl.value = 'NONE';
+          this._resetChart(true);
+        });
+    
+        this.selectEl.addEventListener('change', () => {
+          const ind = this.selectEl.value;
+          console.log("[DEBUG] Indicator selected:", ind);
+          this._resetChart(false);
+          if (ind !== 'NONE') {
+            this._addIndicator(ind);
+          }
+        });
+      }
+    
+      _resetChart(full) {
+        if (full) {
+          console.log("[DEBUG] Full chart reset");
+          this.chart.dispose();
+          this._initChart();
+          return;
+        }
+        console.log("[DEBUG] Partial reset (remove extra plots)");
+        while (this.chart.getPlotsCount() > 1) {
+          this.chart.plot(1).remove();
+        }
+      }
+
+    
+      _addIndicator(type) {
+        console.log(`[DEBUG] Adding indicator: ${type}`);
+        if (type === 'SMA') {
+          this.plot0.sma(this.mapping, 20).series().name('SMA (20)');
+        } else if (type === 'EMA') {
+          this.plot0.ema(this.mapping, 20).series().name('EMA (20)');
+        } else if (type === 'BB') {
+          this.plot0.bbands(this.mapping).name('Bollinger Bands');
+        } else {
+          const p1 = this.chart.plot(1);
+          switch (type) {
+            case 'RSI':
+              p1.rsi(this.mapping, 14).series().name('RSI');
+              p1.title('RSI').yScale().minimum(0).maximum(100);
+              break;
+            case 'MACD':
+              const macd = p1.macd(this.mapping, 12, 26, 9);
+              macd.macdSeries().name('MACD');
+              macd.signalSeries().name('Signal');
+              macd.histogramSeries().name('Histogram');
+              p1.title('MACD');
+              break;
+            case 'OBV':
+              p1.obv(this.mapping).series().name('OBV');
+              p1.title('On Balance Volume');
+              break;
+            case 'Pivots':
+              console.log("[DEBUG] Pivots calculation starting...");
+              const comp = this.dataTable.createComputer(this.mapping);
+              ['pp', 's1', 's2', 's3', 'r1', 'r2', 'r3'].forEach(f => comp.addOutputField(f, f));
+              comp.setStartFunction(() => { this._vals = []; });
+              comp.setCalculationFunction(r => {
+                this._vals.push({ h: r.get('high'), l: r.get('low'), c: r.get('close') });
+                if (this._vals.length > 1) this._vals.shift();
+                const v = this._vals[0];
+                const pp = (v.h + v.l + v.c) / 3;
+                r.set('pp', pp);
+                r.set('s1', 2 * pp - v.h);
+                r.set('r1', 2 * pp - v.l);
+                r.set('s2', pp - (v.h - v.l));
+                r.set('r2', pp + (v.h - v.l));
+                r.set('s3', v.l - 2 * (v.h - pp));
+                r.set('r3', v.h + 2 * (pp - v.l));
+              });
+              ['pp', 's1', 's2', 's3', 'r1', 'r2', 'r3'].forEach(k =>
+                this.plot0.line(this.dataTable.mapAs({ value: k })).name(k.toUpperCase())
+              );
+              break;
+          }
+        }
       }
     }
-  
-    drawStock();
-  
-    // 3) Reset & Indicator logic
-    document.getElementById('resetButton').addEventListener('click', () => {
-      stockChart.dispose();
-      drawStock();
-      document.getElementById('indicatorSelect').value = 'NONE';
+    
+    // Instantiate chart
+    console.log("[DEBUG] Instantiating TechnicalAnalysisChart...");
+    new TechnicalAnalysisChart({
+      historicalData,
+      metadata,
+      containerId: 'chart-box',
+      selectId: 'indicatorSelect',
+      resetButtonId: 'resetButton'
     });
-  
-    document.getElementById('indicatorSelect').addEventListener('change', function () {
-      const plot = stockChart.plot(0);
-      const mapping = plot.getSeries().mapping;
-  
-      // Clear all secondary plots
-      for (let i = 1; i < stockChart.plotsCount(); i++) {
-        stockChart.plot(i).removeAllSeries();
-      }
-  
-      switch (this.value) {
-        case 'RSI':
-          stockChart.plot(1).rsi(mapping, 14).series();
-          stockChart.plot(1).title('Relative Strength Index (RSI)');
-          break;
-        case 'MACD':
-          stockChart.plot(1).macd(mapping, 12, 26, 9);
-          stockChart.plot(1).title('MACD Indicator');
-          break;
-        case 'OBV':
-          stockChart.plot(1).obv(mapping);
-          stockChart.plot(1).title('On Balance Volume (OBV)');
-          break;
-        case 'SMA':
-          plot.sma(mapping, 20).series();
-          break;
-        case 'EMA':
-          plot.ema(mapping, 20).series();
-          break;
-        case 'BB':
-          const bb = plot.bbands(mapping);
-          bb.upperSeries().stroke('#bf360c');
-          bb.middleSeries().stroke('#ff6600');
-          bb.lowerSeries().stroke('#bf360c');
-          bb.rangeSeries().fill('#ffd54f 0.2');
-          break;
-        case 'Pivots':
-          plot.priceIndicator();
-          break;
-        default:
-          break;
-      }
-    });
-  
-    // 4) Chart.js for News Sentiment
+    
+    // Chart.js for News Sentiment
+    console.log("[DEBUG] Creating Chart.js sentiment bar chart...");
     new Chart(document.getElementById('sentimentChart').getContext('2d'), {
       type: 'bar',
       data: {
         labels: ['Positive', 'Negative', 'Neutral'],
         datasets: [{
           label: 'News Sentiment',
-          data: [
-            sentimentStats.positive,
-            sentimentStats.negative,
-            sentimentStats.neutral
-          ],
+          data: [sentimentStats.positive, sentimentStats.negative, sentimentStats.neutral],
           backgroundColor: ['#4CAF50', '#F44336', '#9E9E9E']
         }]
       },
       options: {
         indexAxis: 'y',
-        scales: {
-          x: { beginAtZero: true }
-        }
+        scales: { x: { beginAtZero: true } }
       }
     });
-  </script>
+    
+    </script>
+    
+  
   
 {% endblock %}

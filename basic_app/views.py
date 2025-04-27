@@ -16,6 +16,7 @@ from basic_app.get_stock_info import getStockInfo
 from basic_app.ProphetTrend import forecast
 from decimal import Decimal
 from basic_app.sectorPerformance import sectorPerformance
+import basic_app.ta as ta
 
 
 
@@ -335,3 +336,30 @@ def search_stock(request):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         return JsonResponse({'data': []})
     return redirect('basic_app:portfolio')
+
+@csrf_exempt
+@csrf_exempt
+def get_indicator(request, symbol, indicator):
+    """
+    Given a stock symbol and indicator name, return JSON data points for plotting.
+    """
+    try:
+        if indicator == "SMA":
+            df = ta.sma(symbol)
+        elif indicator == "EMA":
+            df = ta.ema(symbol)
+        elif indicator == "MACD":
+            df = ta.macd(symbol)
+        elif indicator == "RSI":
+            df = ta.rsi(symbol)
+        elif indicator == "OBV":
+            df = ta.obv(symbol)
+        elif indicator == "BB":
+            df = ta.bband(symbol)
+        else:
+            return JsonResponse({'error': 'Unknown indicator'}, status=400)
+
+        return JsonResponse(df.to_dict(orient="records"), safe=False)
+
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

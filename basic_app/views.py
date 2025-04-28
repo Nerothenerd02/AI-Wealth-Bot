@@ -16,7 +16,9 @@ from basic_app.get_stock_info import getStockInfo
 from basic_app.ProphetTrend import forecast
 from decimal import Decimal
 from basic_app.sectorPerformance import sectorPerformance
+from django.views.decorators.cache import never_cache
 import basic_app.ta as ta
+import json
 
 
 
@@ -63,6 +65,7 @@ def index(request):
 def profile(request):
     return render(request, "basic_app/profile.html", {'client': request.user, 'page_title': "User Profile"})
 
+@never_cache
 @login_required(login_url='basic_app:login')
 @allowed_users(allowed_roles=['Client'])
 def portfolio(request):
@@ -104,6 +107,53 @@ def portfolio(request):
     elif cash_balance < 50:
         recommendation = "⚠️ Your cash is running low."
 
+    # --- New Rocket Science Recommendation System ---
+    recommended_stocks = []
+
+    for s in stocks:
+        try:
+            # Pull Piotroski score
+            piotroski_score = piotroski(s.stock_symbol)
+
+            # Pull News Sentiment
+            news = getNewsWithSentiment(s.stock_name)
+            sentiment_news_chart = {'positive': 0, 'negative': 0, 'neutral': 0}
+            for n in news:
+                if isinstance(n, dict):
+                    sentiment = n.get('sentiment', 'neutral')
+                    if sentiment in sentiment_news_chart:
+                        sentiment_news_chart[sentiment] += 1
+
+            # Log sentiment
+            print(f"[RocketScience] {s.stock_symbol}: Piotroski {piotroski_score} | Sentiment {sentiment_news_chart}")
+
+            # Compute recommendation
+            overall_sentiment = sentiment_news_chart['positive'] - sentiment_news_chart['negative']
+            is_recommended = (piotroski_score >= 5 and overall_sentiment > 0)
+
+            if is_recommended:
+                # Check affordability
+                price = 0
+                try:
+                    price = float(s.stock_price.split()[0])
+                except Exception as e:
+                    print(f"[RocketScience] Failed to parse price for {s.stock_symbol}: {e}")
+
+                if price > 0:
+                    if cash_balance >= price:
+                        print(f"[RocketScience] Enough cash to buy {s.stock_symbol}: ${price}")
+                    else:
+                        print(f"[RocketScience] NOT enough cash to buy {s.stock_symbol}: ${price}")
+                else:
+                    print(f"[RocketScience] No valid price found for {s.stock_symbol}.")
+
+                # Regardless of cash, add to recommendation list
+                recommended_stocks.append(s.stock_symbol)
+
+        except Exception as e:
+            print(f"[RocketScience] Failed to compute recommendation for {s.stock_symbol}: {e}")
+
+    # Build context properly (✅ COMMA FIXED)
     context = {
         'stocks': stocks,
         'cash_balance': cash_balance,
@@ -112,10 +162,12 @@ def portfolio(request):
         'recommendation': recommendation,
         'chart_labels': chart_labels,
         'chart_data': chart_data,
-        'page_title': "Your Portfolio"
+        'page_title': "Your Portfolio",
+        'recommended_stocks': recommended_stocks,
     }
 
     return render(request, "basic_app/portfolio.html", context)
+
 
 @login_required(login_url='basic_app:login')
 def stock(request, symbol):

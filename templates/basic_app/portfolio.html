@@ -52,7 +52,7 @@
 
 <!-- Stocks Table + Pie Chart -->
 <div class="row gx-3" style="height:65vh;">
-  
+
   <!-- Stocks Table -->
   <div class="col-lg-7 overflow-auto" style="max-height:100%;">
     <div class="card shadow-sm h-100">
@@ -110,7 +110,7 @@
     </div>
   </div>
 
-  <!-- Pie Chart -->
+  <!-- Portfolio Composition Pie Chart -->
   <div class="col-lg-5 d-flex align-items-center justify-content-center">
     <div class="card shadow-sm w-100 h-100">
       <div class="card-body d-flex flex-column align-items-center justify-content-center p-3">
@@ -122,26 +122,75 @@
 
 </div>
 
+<!-- New Row: Stock Distribution + Rocket Science -->
+<div class="row gx-3 mt-4" style="height:65vh;">
+
+  <!-- Stock Distribution Pie Chart -->
+  <div class="col-lg-6 d-flex align-items-center justify-content-center">
+    <div class="card shadow-sm w-100 h-100">
+      <div class="card-body d-flex flex-column align-items-center justify-content-center p-3">
+        <h6 class="mb-3">Stock Distribution</h6>
+        <canvas id="stocksOnlyPie" style="width:100%; max-height:70%;"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- 🚀 Actionable Portfolio Recommendations -->
+<div class="col-lg-6 d-flex align-items-center justify-content-center">
+  <div class="card shadow-sm w-100 h-100">
+    <div class="card-body d-flex flex-column align-items-center justify-content-center p-3 text-center">
+
+      <h6 class="mb-3">🚀 Portfolio Recommendations</h6>
+
+      {% if recommended_stocks %}
+        <p class="text-success mb-2">Based on analysis, you may consider buying more of:</p>
+        <ul class="list-unstyled">
+          {% for symbol in recommended_stocks %}
+            <li class="fw-bold">{{ symbol }}</li>
+          {% endfor %}
+        </ul>
+
+        {% if cash_balance < 50 %}
+          <p class="text-warning mt-3">⚠️ Note: Your cash balance is low. Consider adding funds to act on these suggestions.</p>
+        {% endif %}
+
+      {% else %}
+        <p class="text-muted">No new recommendations at this time. Keep steady! ✨</p>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+
+
+</div>
+
 <!-- Pulse Animation for Warnings -->
 <style>
   .pulse {
     animation: pulse 1.5s infinite;
   }
   @keyframes pulse {
-    0%   { transform: scale(1);   opacity: 1; }
-    50%  { transform: scale(1.05);opacity: 0.7; }
-    100% { transform: scale(1);   opacity: 1; }
+    0%   { transform: scale(1); opacity: 1; }
+    50%  { transform: scale(1.05); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
   }
 </style>
 
-<!-- Chart.js Pie Chart -->
+<!-- Chart.js Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Injected JSON from Django -->
+{{ chart_labels|json_script:"chart-labels-data" }}
+{{ chart_data|json_script:"chart-values-data" }}
+
 <script>
+  // Portfolio Composition (Stocks vs Cash)
   const invested = parseFloat('{{ invested_value|default:"0" }}') || 0;
   const cash = parseFloat('{{ cash_balance|default:"0" }}') || 0;
-  const ctx = document.getElementById('portfolioPie').getContext('2d');
+  const ctxPortfolio = document.getElementById('portfolioPie').getContext('2d');
 
-  new Chart(ctx, {
+  new Chart(ctxPortfolio, {
     type: 'pie',
     data: {
       labels: ['Stocks', 'Cash'],
@@ -165,6 +214,41 @@
       }
     }
   });
-</script>
 
+  // Stock Distribution (Only Stocks)
+  const allLabels = JSON.parse(document.getElementById('chart-labels-data').textContent);
+  const allData = JSON.parse(document.getElementById('chart-values-data').textContent);
+  
+  const stockLabels = allLabels.slice(0, -1); // Remove 'Cash'
+  const stockData = allData.slice(0, -1);     // Remove Cash value
+  const ctxStocksOnly = document.getElementById('stocksOnlyPie').getContext('2d');
+
+  new Chart(ctxStocksOnly, {
+    type: 'pie',
+    data: {
+      labels: stockLabels,
+      datasets: [{
+        data: stockData,
+        backgroundColor: [
+          '#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b',
+          '#858796', '#20c997', '#fd7e14', '#6f42c1', '#17a2b8'
+        ],
+        borderColor: '#fff',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.label}: $${ctx.raw.toFixed(2)}`
+          }
+        }
+      }
+    }
+  });
+</script>
 {% endblock %}

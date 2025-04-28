@@ -2,7 +2,7 @@ import pandas as pd
 import yfinance as yf
 import matplotlib.pyplot as plt
 import numpy as np
-import talib as ta
+import  ta
 plt.style.use('seaborn')
 
 def generator(ticker):

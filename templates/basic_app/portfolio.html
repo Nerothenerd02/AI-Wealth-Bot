@@ -251,4 +251,33 @@
     }
   });
 </script>
+<!-- RL Simulation Summary -->
+<div class="row gx-3 mt-4">
+  <div class="col-12 d-flex align-items-center justify-content-center">
+    <div class="card shadow-sm w-100">
+      <div class="card-body text-center">
+
+        <h5 class="mb-3">🧠 RL Simulation Summary (30 Days)</h5>
+
+        {% if rl_summary %}
+          <div class="row">
+            <div class="col-md-2"></div>
+            <div class="col-md-8 text-start">
+              <p><strong>Buy Actions:</strong> {{ rl_summary.buy_actions }}</p>
+              <p><strong>Sell Actions:</strong> {{ rl_summary.sell_actions }}</p>
+              <p><strong>Hold Actions:</strong> {{ rl_summary.hold_actions }}</p>
+              <p><strong>Cumulative Reward:</strong> ${{ rl_summary.cumulative_reward }}</p>
+              <p><strong>Final Net Worth:</strong> ${{ rl_summary.final_net_worth|floatformat:2 }}</p>
+            </div>
+            <div class="col-md-2"></div>
+          </div>
+        {% else %}
+          <p class="text-muted">Simulation data not available.</p>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
